@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>concord work: shell-only agents and the work tools (re #312)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}
+.cur{fill:#e6e6e6}
+</style></head><body>
+<svg viewBox="0 0 1200 520" role="img" aria-label="Animated diagram: Cursor reaches Concord work tools over MCP; a shell-only agent needs a custom gb.mjs driver; proposed concord work CLI calls the same tools in-process.">
+<rect width="1200" height="520" fill="#000"/>
+<!-- header -->
+<text x="30" y="34"><tspan class="d">building@jseramn:~$</tspan> cat re-312.flow</text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,11.3">act 1 · <tspan class="a">the problem</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="11.4,99">act 2 · <tspan class="a">proposed</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- cursor -->
+<rect x="30" y="72" width="380" height="92" class="bx"/>
+<text x="46" y="98" class="h">cursor</text>
+<text x="46" y="122" class="s d">session cursor:586accff</text>
+<text x="46" y="142" class="s d">native MCP client</text>
+<path id="pC" d="M410,112 H470" class="la"/>
+<text x="440" y="104" text-anchor="middle" class="xs d">MCP</text>
+
+<!-- concord-mcp -->
+<rect x="470" y="72" width="280" height="96" class="bs"/>
+<text x="610" y="98" text-anchor="middle" class="h">concord-mcp</text>
+<text x="610" y="124" text-anchor="middle" class="s a">tool callbacks</text>
+<text x="610" y="146" text-anchor="middle" class="xs d">start inspect update transfer finish</text>
+
+<!-- store -->
+<path id="pS" d="M610,168 V360" class="ln"/>
+<rect x="500" y="360" width="220" height="62" class="bs"/>
+<text x="610" y="386" text-anchor="middle" class="h">.concord</text>
+<text x="610" y="408" text-anchor="middle" class="s d">SQLite · work state</text>
+
+<!-- terminal -->
+<rect x="810" y="72" width="360" height="184" class="bx"/>
+<text x="826" y="92" class="xs d">grok-bot-anderson · remote shell (Win PC)</text>
+<line x1="810" y1="100" x2="1170" y2="100" class="ln"/>
+<g class="s">
+<text x="826" y="122" data-t="1.6,11.3" data-type="1.6,3.0">$ concord start_work ...</text>
+<text x="826" y="140" class="r" data-t="3.2,11.3">? no CLI command for start_work</text>
+<text x="826" y="164" data-t="6.4,11.3" data-type="6.4,7.4">$ node gb.mjs start_work @start.json</text>
+<text x="826" y="206" data-t="9.0,11.3" data-type="9.0,9.8">$ concord check GROKBOT_CONCORD_TEST.md</text>
+<text x="826" y="224" class="a" data-t="10.0,11.3">exit 1</text>
+<text x="826" y="122" data-t="11.9,99" data-type="11.9,13.0">$ concord work start --json start.json</text>
+<text x="826" y="140" class="d" data-t="13.6,99"># structuredContent JSON on stdout</text>
+</g>
+<rect id="cur" width="7" height="13" class="cur"/>
+
+<!-- broken link -->
+<g data-t="3.2,6.2">
+<path d="M810,122 H750" class="lr"/>
+<text x="780" y="126" text-anchor="middle" class="r">x</text>
+<text x="772" y="200" text-anchor="end" class="xs r">no path</text>
+</g>
+
+<!-- gb.mjs workaround -->
+<g id="gb" data-t="5.6,12.0">
+<rect x="810" y="282" width="360" height="140" class="bx" data-t="5.6,99"/>
+<text x="826" y="304" data-t="5.8,99">gb.mjs <tspan class="d">· custom stdio driver</tspan></text>
+<text x="826" y="330" class="s d" data-t="6.1,99">&gt; spawn concord-mcp (stdio)</text>
+<text x="826" y="350" class="s d" data-t="6.5,99">&gt; initialize</text>
+<text x="826" y="370" class="s d" data-t="6.9,99">&gt; tools/call start_work</text>
+<text x="826" y="390" class="s d" data-t="7.3,99">&gt; @file JSON (PowerShell quoting)</text>
+<text x="1154" y="410" text-anchor="end" class="xs f" data-t="7.5,99">one per agent</text>
+<path d="M990,256 V282" class="ln" data-t="7.5,99"/>
+<path id="pG" d="M990,256 V282 M810,352 H780 V150 H750" class="ln" data-t="7.5,99"/>
+</g>
+
+<!-- proposed direct line -->
+<g data-t="13.0,99">
+<path id="pD" d="M810,118 H750" class="la"/>
+<text x="772" y="200" text-anchor="end" class="xs a">in-process</text>
+<text x="772" y="214" text-anchor="end" class="xs d">InMemoryTransport</text>
+<path d="M780,124 V204 H776" class="ln" stroke-dasharray="2 3"/>
+</g>
+
+<!-- who panel -->
+<rect x="30" y="250" width="380" height="172" class="bx"/>
+<text x="46" y="274" class="s"><tspan class="d">$</tspan> concord who</text>
+<text x="46" y="300" class="s" data-t="1.2,99">cursor:586accff      <tspan class="a">live</tspan></text>
+<text x="46" y="320" class="s f" data-t="3.4,8.5">grok-bot-anderson    (not listed)</text>
+<text x="46" y="320" class="s" data-t="8.6,99">grok-bot-anderson    <tspan class="a">live</tspan></text>
+<g data-t="9.2,11.3" data-blink="1">
+<text x="46" y="352" class="s a">! overlap  GROKBOT_CONCORD_TEST.md</text>
+<text x="46" y="372" class="xs d">  grokbot-concord-test &lt;-&gt; grokbot-alerta-overlap</text>
+</g>
+
+<!-- packets -->
+<rect class="pk" width="6" height="6" data-pk="pC,pS,0.8,99,1.8,0"/>
+<rect class="pk" width="6" height="6" data-pk="pC,pS,0.8,99,1.8,0.9"/>
+<rect class="pw" width="5" height="5" data-pk="pG,pS,7.7,11.2,2.6,0"/>
+<rect class="pw" width="5" height="5" data-pk="pG,pS,7.7,11.2,2.6,1.3"/>
+<rect class="pk" width="6" height="6" data-pk="pD,pS,13.3,99,1.2,0"/>
+<rect class="pk" width="6" height="6" data-pk="pD,pS,13.3,99,1.2,0.6"/>
+
+<!-- captions -->
+<g text-anchor="middle">
+<text x="610" y="462" class="h" data-t="3.6,5.9"><tspan class="d">&gt;</tspan> shell-only agents can't reach the work tools</text>
+<text x="610" y="462" class="h" data-t="9.6,11.3"><tspan class="d">&gt;</tspan> works, but every shell-only agent rewrites this</text>
+<text x="610" y="462" class="h" data-t="13.6,99"><tspan class="d">&gt;</tspan> same tools, from the shell. <tspan class="a">no new MCP tools.</tspan></text>
+</g>
+<line x1="30" y1="482" x2="1170" y2="482" class="ln"/>
+<line id="prog" x1="30" y1="482" x2="30" y2="482" class="la"/>
+<text x="30" y="506" class="xs d">by @jseramn · jseramn.tech · re #312</text>
+<text x="1170" y="506" text-anchor="end" class="xs f">ids, tasks, file and exit code as observed · loop 16s</text>
+</svg>
+<script>
+(()=>{const T=16,R=.25,q=s=>[...document.querySelectorAll(s)],c=x=>x<0?0:x>1?1:x;
+const fade=q('[data-t]').map(e=>[e,...e.dataset.t.split(',').map(Number)]);
+const typ=q('[data-type]').map(e=>{const[a,b]=e.dataset.type.split(',').map(Number);return[e,a,b,e.textContent]});
+const pk=q('[data-pk]').map(e=>{const p=e.dataset.pk.split(',');return[e,document.getElementById(p[0]),document.getElementById(p[1]),+p[2],+p[3],+p[4],+p[5]]});
+const cur=document.getElementById('cur'),prog=document.getElementById('prog'),gb=document.getElementById('gb');
+function f(t){
+for(const[e,a,b]of fade){let o=c((t-a)/R)*c((b-t)/R);if(e.dataset.blink)o*=Math.floor(t*4)%2?1:.3;e.style.opacity=o}
+let ce=null;for(const[e,a,b,s]of typ){const n=Math.round(c((t-a)/(b-a))*s.length);e.textContent=s.slice(0,n);if(t>=a-.3&&t<b+.9&&+e.style.opacity>0)ce=e}
+if(ce){const w=ce.getComputedTextLength?ce.getComputedTextLength():0;cur.setAttribute('x',826+w+2);cur.setAttribute('y',+ce.getAttribute('y')-11);cur.style.opacity=Math.floor(t*2.5)%2?0:1}else{cur.style.opacity=0}
+const k=c((t-11.4)/.6);gb.style.transformOrigin='990px 352px';gb.style.transform='scaleY('+(1-k)+')';
+for(const[e,p1,p2,a,b,P,off]of pk){if(t<a||t>b){e.style.opacity=0;continue}
+const u=((t-a+off)%P)/P,L1=p1.getTotalLength(),L2=p2.getTotalLength(),d=u*(L1+L2),pt=d<L1?p1.getPointAtLength(d):p2.getPointAtLength(d-L1);
+e.setAttribute('x',pt.x-3);e.setAttribute('y',pt.y-3);e.style.opacity=1}
+prog.setAttribute('x2',30+1140*t/T)}
+const m=location.hash.match(/t=([\d.]+)/);
+if(m)f(+m[1]);else if(matchMedia('(prefers-reduced-motion: reduce)').matches)f(15.9);
+else{const s=performance.now();const l=n=>{f(((n-s)/1000)%T);requestAnimationFrame(l)};requestAnimationFrame(l)}})();
+</script>
+</body></html>
