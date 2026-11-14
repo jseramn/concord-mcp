@@ -30,11 +30,15 @@ export function isDevinHookEvent(event: string): event is DevinHookEvent {
 
 const NO_OUTPUT = JSON.stringify({});
 
-export function devinSessionStartOutput(agentId: string, others: readonly RosterLine[]): string {
+export function devinSessionStartOutput(
+  agentId: string,
+  others: readonly RosterLine[],
+  agentToken?: string,
+): string {
   return JSON.stringify({
     hookSpecificOutput: {
       hookEventName: 'SessionStart',
-      additionalContext: sessionStartMessage(agentId, others, true),
+      additionalContext: sessionStartMessage(agentId, others, true, agentToken),
     },
   });
 }
@@ -70,6 +74,7 @@ export function handleLocalDevinHook(
         buildRoster(repos.agents.list(), Date.now()).filter(
           (peer) => peer.agentId !== identity.agentId,
         ),
+        repos.agentCredentials.issue(identity.agentId),
       );
     case 'devin-user-prompt-submit':
       return devinPromptSubmitOutput(drainInbox(repos, identity.agentId, 'devin'));

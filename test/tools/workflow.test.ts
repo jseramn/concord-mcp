@@ -46,6 +46,11 @@ describe('simplified workflow MCP contract', () => {
   beforeEach(() => {
     repos = createRepositories(openDatabase(':memory:'));
   });
+  /** The token a session's start hook would have handed an agent Concord cannot see. */
+  const provenAs = (agentId: string): { agent_id: string; agent_token: string } => ({
+    agent_id: agentId,
+    agent_token: repos.agentCredentials.issue(agentId),
+  });
 
   it('exposes exactly five workflow tools and no legacy aliases', async () => {
     const harness = await connect(repos);
@@ -131,7 +136,7 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-1',
           title: 'Simplify lifecycle',
           kind: 'codex',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
           owner: 'alex',
           expected_files: ['src/server.ts'],
         },
@@ -154,7 +159,7 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-1',
           title: 'Simplify lifecycle',
           kind: 'codex',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
         },
       });
       expect(reclaimed.isError).not.toBe(true);
@@ -168,7 +173,7 @@ describe('simplified workflow MCP contract', () => {
         name: 'update_work',
         arguments: {
           task_id: 'TASK-1',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
           kind: 'decision',
           content: 'Expose five tools',
         },
@@ -186,7 +191,7 @@ describe('simplified workflow MCP contract', () => {
         name: 'finish_work',
         arguments: {
           task_id: 'TASK-1',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
           expected_version: 1,
           outcome: 'review_ready',
           what_changed: 'Consolidated the lifecycle',
@@ -202,7 +207,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           task_id: 'TASK-1',
           action: 'reopen',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
           expected_version: 2,
           reason: 'Apply final fixes',
         },
@@ -211,7 +216,7 @@ describe('simplified workflow MCP contract', () => {
         name: 'finish_work',
         arguments: {
           task_id: 'TASK-1',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
           expected_version: 3,
           outcome: 'complete',
           what_changed: 'Applied final fixes',
@@ -240,7 +245,7 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-FIRST',
           title: 'First task',
           kind: 'codex',
-          agent_id: 'codex:first',
+          ...provenAs('codex:first'),
           expected_files: ['src/shared.ts'],
         },
       });
@@ -250,7 +255,7 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-SECOND',
           title: 'Second task',
           kind: 'codex',
-          agent_id: 'codex:second',
+          ...provenAs('codex:second'),
           expected_files: ['src/shared.ts'],
         },
       });
@@ -258,7 +263,7 @@ describe('simplified workflow MCP contract', () => {
         name: 'finish_work',
         arguments: {
           task_id: 'TASK-SECOND',
-          agent_id: 'codex:second',
+          ...provenAs('codex:second'),
           expected_version: 1,
           outcome: 'complete',
           what_changed: 'Finished the isolated work',
@@ -320,7 +325,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           task_id: 'TASK-A',
           action: 'offer',
-          agent_id: 'codex:a',
+          ...provenAs('codex:a'),
           expected_version: 1,
           to_agent_id: 'codex:b',
           what_changed: 'Parser is ready',
@@ -338,7 +343,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           task_id: 'TASK-A',
           action: 'accept',
-          agent_id: 'codex:b',
+          ...provenAs('codex:b'),
           expected_version: 2,
         },
       });
@@ -353,7 +358,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           task_id: 'TASK-A',
           action: 'release',
-          agent_id: 'codex:b',
+          ...provenAs('codex:b'),
           expected_version: 3,
           reason: 'Return to queue',
         },
@@ -363,7 +368,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           task_id: 'TASK-A',
           action: 'assign',
-          agent_id: 'codex:b',
+          ...provenAs('codex:b'),
           expected_version: 4,
           to_agent_id: 'codex:a',
         },
@@ -373,7 +378,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           task_id: 'TASK-A',
           action: 'accept',
-          agent_id: 'codex:a',
+          ...provenAs('codex:a'),
           expected_version: 5,
         },
       });
@@ -404,7 +409,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           task_id: 'TASK-OWNER',
           action: 'assign',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
           expected_version: 1,
           to_agent_id: 'codex:assignee',
         },
@@ -416,7 +421,7 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-OWNER',
           title: 'TASK-OWNER',
           kind: 'codex',
-          agent_id: 'codex:assignee',
+          ...provenAs('codex:assignee'),
         },
       });
 
@@ -441,7 +446,7 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-OWNED',
           title: 'Owned work',
           kind: 'codex',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
         },
       });
 
@@ -451,7 +456,7 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-OWNED',
           title: 'Owned work',
           kind: 'claude-code',
-          agent_id: 'claude:intruder',
+          ...provenAs('claude:intruder'),
         },
       });
 
@@ -472,7 +477,7 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-ACTIVE',
           title: 'Active work',
           kind: 'codex',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
         },
       });
 
@@ -481,7 +486,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           task_id: 'TASK-ACTIVE',
           action: 'decline',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
           expected_version: 1,
           reason: 'Nothing to decline',
         },
@@ -503,14 +508,14 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-STALE',
           title: 'Stale finish',
           kind: 'codex',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
         },
       });
       const result = await harness.client.callTool({
         name: 'finish_work',
         arguments: {
           task_id: 'TASK-STALE',
-          agent_id: 'codex:owner',
+          ...provenAs('codex:owner'),
           expected_version: 99,
           outcome: 'complete',
           what_changed: 'Should not persist',
@@ -547,7 +552,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           operation: 'prompt',
           task_id: 'TASK-TARGET',
-          agent_id: 'codex:sender',
+          ...provenAs('codex:sender'),
           to_agent_id: 'codex:target',
           content: 'Please re-check the parser boundary.',
           idempotency_key: 'sender-1',
@@ -583,7 +588,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           operation: 'prompt',
           task_id: 'TASK-TARGET',
-          agent_id: 'codex:sender',
+          ...provenAs('codex:sender'),
           to_agent_id: 'codex:target',
           content: 'Please re-check the parser boundary.',
           idempotency_key: 'sender-1',
@@ -597,7 +602,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           operation: 'prompt',
           task_id: 'TASK-SENDER',
-          agent_id: 'codex:sender',
+          ...provenAs('codex:sender'),
           to_agent_id: 'codex:target',
           content: 'Please re-check the parser boundary.',
           idempotency_key: 'sender-1',
@@ -616,7 +621,7 @@ describe('simplified workflow MCP contract', () => {
         arguments: {
           operation: 'prompt',
           task_id: 'TASK-TARGET',
-          agent_id: 'codex:sender',
+          ...provenAs('codex:sender'),
           to_agent_id: 'codex:target',
           content: 'Queued until the target is back.',
           idempotency_key: 'sender-queued',
@@ -627,7 +632,10 @@ describe('simplified workflow MCP contract', () => {
 
       const inspected = await harness.client.callTool({
         name: 'inspect_work',
-        arguments: { message_id: message?.messageId, agent_id: 'codex:sender' },
+        arguments: {
+          message_id: message?.messageId,
+          ...provenAs('codex:sender'),
+        },
       });
       expect(inspected.isError).not.toBe(true);
       expect(JSON.stringify(inspected)).toContain('delivered');
@@ -666,7 +674,7 @@ describe('simplified workflow MCP contract', () => {
           task_id: 'TASK-THREAD',
           title: 'Thread context',
           kind: 'codex',
-          agent_id: 'codex:a',
+          ...provenAs('codex:a'),
         },
       });
       const oldTimestamp = '2026-01-01T00:00:00.000Z';
@@ -677,7 +685,7 @@ describe('simplified workflow MCP contract', () => {
         name: 'update_work',
         arguments: {
           operation: 'prompt',
-          agent_id: 'codex:a',
+          ...provenAs('codex:a'),
           to_agent_id: 'claude:b',
           content: 'Unscoped coordination',
           idempotency_key: 'unscoped-1',
@@ -688,7 +696,7 @@ describe('simplified workflow MCP contract', () => {
       const promptArguments = {
         operation: 'prompt',
         task_id: 'TASK-THREAD',
-        agent_id: 'codex:a',
+        ...provenAs('codex:a'),
         to_agent_id: 'claude:b',
         content: 'What did you find?',
         idempotency_key: 'question-1',
@@ -713,7 +721,7 @@ describe('simplified workflow MCP contract', () => {
         name: 'update_work',
         arguments: {
           operation: 'reply',
-          agent_id: 'claude:b',
+          ...provenAs('claude:b'),
           reply_to_message_id: parent?.messageId,
           content: 'The boundary is safe.',
           idempotency_key: 'answer-1',
@@ -761,7 +769,7 @@ describe('simplified workflow MCP contract', () => {
         name: 'update_work',
         arguments: {
           operation: 'prompt',
-          agent_id: 'codex:sender',
+          ...provenAs('codex:sender'),
           to_agent_id: 'cursor:offline',
           content: 'Are you there?',
           idempotency_key: 'offline-1',
@@ -807,7 +815,7 @@ describe('simplified workflow MCP contract', () => {
         name: 'update_work',
         arguments: {
           operation: 'prompt',
-          agent_id: 'codex:sender',
+          ...provenAs('codex:sender'),
           to_agent_id: 'codex:target',
           content: 'Retry me',
           idempotency_key: 'pending-1',

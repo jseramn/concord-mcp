@@ -1,6 +1,10 @@
 import { openDatabase, type ConcordDatabase } from './connection.js';
 import { LOCAL_PROJECT } from './project-scope-migration.js';
 import {
+  createAgentCredentialRepository,
+  type AgentCredentialRepository,
+} from './repositories/agent-credentials.js';
+import {
   createAgentEndpointRepository,
   type AgentEndpointRepository,
 } from './repositories/agent-endpoints.js';
@@ -36,6 +40,7 @@ export type {
   OwnershipEventRepository,
 } from './repositories/ownership-events.js';
 export type { NewAgent, AgentRepository } from './repositories/agents.js';
+export type { AgentCredentialRepository } from './repositories/agent-credentials.js';
 export type { NewAgentEndpoint, AgentEndpointRepository } from './repositories/agent-endpoints.js';
 export type {
   ClaimOptions,
@@ -78,6 +83,7 @@ export interface Repositories {
   events: EventRepository;
   agents: AgentRepository;
   agentEndpoints: AgentEndpointRepository;
+  agentCredentials: AgentCredentialRepository;
   agentMessages: AgentMessageRepository;
   ownershipEvents: OwnershipEventRepository;
 }
@@ -97,6 +103,7 @@ export function createRepositories(
     events: createEventRepository(db, project),
     agents: createAgentRepository(db),
     agentEndpoints: createAgentEndpointRepository(db),
+    agentCredentials: createAgentCredentialRepository(db),
     agentMessages: createAgentMessageRepository(db, project),
     ownershipEvents: createOwnershipEventRepository(db, project),
   };

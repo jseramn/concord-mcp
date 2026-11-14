@@ -7,23 +7,19 @@ import { inspectAgentCommunication, type AgentCommunicationView } from './agent-
  * received. Inspecting another agent shows its presence, never its mail.
  *
  * The viewer is the session's own identity. Where Concord cannot see the
- * session (Codex scrubs its environment), the only id available is the one
- * the caller names, so an agent naming itself is trusted to be itself — the
- * same cooperative model every write uses there. Without any viewer, nothing
- * is shown. This keeps cooperating agents out of each other's mail; it is not
- * a security boundary (anyone with a shell can run `concord messages`).
+ * session (Codex scrubs its environment), the caller names its agent_id and
+ * proves it with the agent_token its session was handed; an id alone is
+ * public (it is in the workspace state), so a caller that cannot prove one is
+ * no viewer at all and is shown presence only, never message content.
  *
- * Reading is a side effect, but only for a viewer Concord identified from the
- * session itself: when the recipient's own session is handed a message's
- * content in a tool result, its model has that message in its input, which is
- * exactly what `read` means. A self-named viewer could be anyone, so it never
- * changes a receipt, and neither does a sender inspecting its own outbox.
+ * Reading is a side effect: when the recipient is handed a message's content
+ * in a tool result, its model has that message in its input, which is exactly
+ * what `read` means. A sender inspecting its own outbox changes nothing.
  */
 
 export interface Viewer {
+  /** Identified from the session, or proven with the agent's token. */
   agentId: string;
-  /** Identified from the session, not merely named by the caller. */
-  verified: boolean;
 }
 
 export type MessageView = AgentMessageRecord & { receipt: Receipt };
@@ -36,13 +32,12 @@ function participates(message: AgentMessageRecord, viewer: string): boolean {
   return message.senderAgentId === viewer || message.recipientAgentId === viewer;
 }
 
-/** Mark read what a verified `viewer` received among `messages`, returning them refreshed. */
+/** Mark read what `viewer` received among `messages`, returning them refreshed. */
 function readOnInspect(
   repos: Repositories,
   viewer: Viewer,
   messages: readonly AgentMessageRecord[],
 ): AgentMessageRecord[] {
-  if (!viewer.verified) return [...messages];
   const received = messages
     .filter((message) => message.recipientAgentId === viewer.agentId)
     .map((message) => message.messageId);
@@ -72,12 +67,22 @@ export function privateMessagesNote(agentId: string): string {
   );
 }
 
+function unprovenNote(agentId: string): string {
+  return (
+    `Messages are private to ${agentId}. Concord cannot see your session, so pass your ` +
+    'agent_token with agent_id to read your own inbox and outbox.'
+  );
+}
+
 export function inspectAgentInbox(
   repos: Repositories,
   agentId: string,
-  viewer: Viewer,
+  viewer: Viewer | undefined,
 ): AgentInboxView {
   const { inbox, outbox, ...presence } = inspectAgentCommunication(repos, agentId);
+  if (viewer === undefined) {
+    return { ...presence, private: true, messages: unprovenNote(agentId) };
+  }
   if (viewer.agentId !== agentId) {
     return { ...presence, private: true, messages: privateMessagesNote(agentId) };
   }
@@ -105,7 +110,9 @@ export function inspectThread(
 ): ThreadView {
   const notFound = new Error(
     `Agent message ${messageId} does not exist` +
-      (viewer === undefined ? ', or this caller cannot be identified: pass your agent_id.' : '.'),
+      (viewer === undefined
+        ? ', or this caller cannot be identified: pass your agent_id and agent_token.'
+        : '.'),
   );
   if (viewer === undefined || repos.agentMessages.get(messageId) === undefined) throw notFound;
   const visible = repos.agentMessages

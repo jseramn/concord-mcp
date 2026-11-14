@@ -31,15 +31,27 @@ export const CONCORD_SERVER_ONLY =
   "Make Concord calls with this machine's `concord` MCP server; a chat app's Concord " +
   "connector (such as claude.ai's) is a separate agent and must never be given this id.";
 
+/**
+ * How a session Concord's MCP server cannot see proves it is the id it passes.
+ * Empty when there is no token to hand over (a Concord Cloud workspace).
+ */
+export function agentTokenNote(agentToken: string | undefined): string {
+  return agentToken === undefined
+    ? ''
+    : ` Pass \`agent_token: "${agentToken}"\` wherever you pass that agent_id. It proves you ` +
+        'are this agent: never share it, write it to a file, or give it to another agent.';
+}
+
 /** What a session is told at start: who it is, and who else is here. */
 export function sessionStartMessage(
   agentId: string,
   others: readonly RosterLine[],
   explicitAgentId = false,
+  agentToken?: string,
 ): string {
   return [
     explicitAgentId
-      ? `Concord: this session is agent \`${agentId}\`. Devin's MCP server cannot see the hook session payload, so include \`agent_id: "${agentId}"\` on start_work, update_work, transfer_work, and finish_work calls. On inspect_work, \`agent_id\` selects whose inbox to read: leave it off to see the workspace, a task, or a message thread, and pass your own id only to read your inbox. Do not invent an id. ${CONCORD_SERVER_ONLY}`
+      ? `Concord: this session is agent \`${agentId}\`. Devin's MCP server cannot see the hook session payload, so include \`agent_id: "${agentId}"\` on start_work, update_work, transfer_work, and finish_work calls. On inspect_work, \`agent_id\` selects whose inbox to read: leave it off to see the workspace, a task, or a message thread, and pass your own id only to read your inbox. Do not invent an id.${agentTokenNote(agentToken)} ${CONCORD_SERVER_ONLY}`
       : `Concord: this session is agent \`${agentId}\`. Concord resolves that identity from your ` +
         'session on every tool call, so start_work, update_work, finish_work attribute your work ' +
         `and keep your presence live without you passing an id. ${CONCORD_SERVER_ONLY}`,
@@ -61,6 +73,7 @@ export function hermesSessionStartMessage(
   agentId: string,
   workspaceId: string | undefined,
   others: readonly RosterLine[],
+  agentToken?: string,
 ): string {
   const ids =
     workspaceId === undefined
@@ -73,7 +86,7 @@ export function hermesSessionStartMessage(
       "Hermes starts Concord's MCP server without your session or project, so " +
       ids +
       ' On inspect_work, `agent_id` selects whose inbox to read: pass your own id only to read ' +
-      `your inbox. Do not invent an id. ${CONCORD_SERVER_ONLY}`,
+      `your inbox. Do not invent an id.${agentTokenNote(agentToken)} ${CONCORD_SERVER_ONLY}`,
     "Other agents' messages are delivered at the start of your next turn. To check sooner, run " +
       `\`concord inbox drain --agent ${agentId} --provider hermes\` from this repository.`,
     ...rosterLines(others),
@@ -88,13 +101,15 @@ export function hermesSessionStartMessage(
 export function antigravitySessionStartMessage(
   agentId: string,
   others: readonly RosterLine[],
+  agentToken?: string,
 ): string {
   const monitor = antigravityMonitorCommand(agentId);
   return [
     `Concord: this session is agent \`${agentId}\`. Pass agent_id: "${agentId}" on every ` +
       'write call (start_work, update_work, transfer_work, finish_work). ' +
-      'The MCP server cannot see your session, so it cannot fill this in for you. ' +
-      CONCORD_SERVER_ONLY,
+      'The MCP server cannot see your session, so it cannot fill this in for you.' +
+      agentTokenNote(agentToken) +
+      ` ${CONCORD_SERVER_ONLY}`,
     'Messages from other agents reach a running turn automatically. To hear them while idle, ' +
       `start exactly one background command now: \`${monitor}\`. Do not wait on it or ` +
       'poll it. When it completes with a message, answer it, then immediately start a fresh ' +

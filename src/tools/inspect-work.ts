@@ -1,5 +1,6 @@
 import type { Repositories } from '../db/index.js';
 import type { InspectWorkInput } from '../domain/schemas.js';
+import { provesAgent } from './agent-proof.js';
 import { handleGetTaskContext, type TaskContextResult } from './get-task-context.js';
 import { handleGetWorkState } from './get-work-state.js';
 import {
@@ -19,9 +20,10 @@ export type InspectWorkResult =
 
 /**
  * `viewer` is who is asking: the session's own agent, or, where Concord cannot
- * see the session, the agent the caller names. Message content is shown only
- * to its sender and recipient. With `message_id` or `task_id`, `agent_id`
- * names the viewer rather than an inbox to inspect.
+ * see the session, the agent the caller names and proves with its
+ * `agent_token`. Message content is shown only to its sender and recipient.
+ * With `message_id` or `task_id`, `agent_id` names the viewer rather than an
+ * inbox to inspect.
  */
 export function handleInspectWork(
   repos: Repositories,
@@ -39,10 +41,10 @@ export function handleInspectWork(
   }
   const viewer: Viewer | undefined =
     sessionAgentId !== undefined
-      ? { agentId: sessionAgentId, verified: true }
-      : input.agent_id === undefined
-        ? undefined
-        : { agentId: input.agent_id, verified: false };
+      ? { agentId: sessionAgentId }
+      : input.agent_id !== undefined && provesAgent(repos, input.agent_id, input.agent_token)
+        ? { agentId: input.agent_id }
+        : undefined;
   if (input.task_id !== undefined) {
     const context = handleGetTaskContext(repos, {
       task_id: input.task_id,
@@ -59,11 +61,7 @@ export function handleInspectWork(
   if (input.agent_id !== undefined) {
     return {
       scope: 'agent',
-      communication: inspectAgentInbox(
-        repos,
-        input.agent_id,
-        viewer ?? { agentId: input.agent_id, verified: false },
-      ),
+      communication: inspectAgentInbox(repos, input.agent_id, viewer),
     };
   }
   return { scope: 'workspace', state: handleGetWorkState(repos) };

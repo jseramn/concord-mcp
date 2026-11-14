@@ -194,6 +194,9 @@ export function routedRepositories(manager: WorkspaceManager): Repositories {
     get agentEndpoints() {
       return manager.current().repos.agentEndpoints;
     },
+    get agentCredentials() {
+      return manager.current().repos.agentCredentials;
+    },
     get agentMessages() {
       return manager.current().repos.agentMessages;
     },

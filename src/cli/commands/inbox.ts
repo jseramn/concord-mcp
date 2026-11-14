@@ -41,7 +41,7 @@ import {
   REWAKE_EXIT_CODE,
   standDownWhenSuperseded,
 } from './inbox-rewake.js';
-import { CONCORD_SERVER_ONLY } from './session-start-message.js';
+import { agentTokenNote, CONCORD_SERVER_ONLY } from './session-start-message.js';
 import {
   cloudAccess,
   drainFromCloud,
@@ -240,14 +240,14 @@ export function readHookPayload(): string | undefined {
   }
 }
 
-export function registeredLine(agentId: string, provider: string): string {
+export function registeredLine(agentId: string, provider: string, agentToken?: string): string {
   // A harness monitor may not inherit the session's environment (Grok's does
   // not), so hand the agent the exact command with its id already filled in.
   const monitor = harnessConfigFor(provider)?.monitor.command?.replace('<agent-id>', agentId);
   return (
     `Concord: this session is agent \`${agentId}\` and can receive live messages from other ` +
     `agents. If a Concord tool asks for agent_id, use "${agentId}"; do not invent a ` +
-    `different id. ${CONCORD_SERVER_ONLY}` +
+    `different id.${agentTokenNote(agentToken)} ${CONCORD_SERVER_ONLY}` +
     (monitor === undefined ? '' : ` Start its inbox monitor with: \`${monitor}\`.`) +
     '\n'
   );
@@ -463,8 +463,12 @@ export function registerInboxCommand(program: Command, telemetry?: TelemetryReco
       }
       // Name the id. Clients whose session Concord can read resolve it on every
       // tool call; clients that scrub their environment (Codex) cannot, and for
-      // those this line is the only place the agent learns who it is.
-      process.stdout.write(registeredLine(agentId, options.provider));
+      // those this line is the only place the agent learns who it is, and the
+      // token that proves it. An id named with --agent gets none: anyone can
+      // name any id, so only the session itself may be handed its token.
+      const agentToken =
+        options.agent === undefined ? context.repos.agentCredentials.issue(agentId) : undefined;
+      process.stdout.write(registeredLine(agentId, options.provider, agentToken));
     });
 
   inbox

@@ -290,4 +290,14 @@ export const migrations: readonly string[] = [
     summary_updated_at = CASE WHEN summary IS NULL THEN NULL ELSE last_seen END,
     execution_status = CASE WHEN status = 'active' THEN 'executing' ELSE 'not_executing' END;
   `,
+  // 018 — a secret per agent whose session the MCP server cannot see (Codex,
+  // Devin, Hermes, headless Antigravity). The hook that does see the session
+  // hands it to the model; a write or inbox read naming that agent must carry it.
+  `
+  CREATE TABLE agent_credentials (
+    agent_id   TEXT PRIMARY KEY,
+    token_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  `,
 ];

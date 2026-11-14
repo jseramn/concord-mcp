@@ -129,6 +129,8 @@ export function forwardedArguments(
 ): ToolArguments {
   const forwarded: ToolArguments = {};
   for (const [name, value] of Object.entries(args)) {
+    // A local store's secret proves nothing to the cloud; never send it there.
+    if (name === 'agent_token') continue;
     forwarded[name] =
       name.endsWith('files') && Array.isArray(value)
         ? value.map((item) => (typeof item === 'string' ? repoRelative(session, item) : item))

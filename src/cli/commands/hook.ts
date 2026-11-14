@@ -211,7 +211,11 @@ export function handleAntigravitySessionStart(
   const others = buildRoster(repos.agents.list(), Date.now()).filter(
     (entry) => entry.agentId !== agentId,
   );
-  const msg = antigravitySessionStartMessage(agentId, others);
+  const msg = antigravitySessionStartMessage(
+    agentId,
+    others,
+    repos.agentCredentials.issue(agentId),
+  );
   return {
     agentId,
     output: JSON.stringify({

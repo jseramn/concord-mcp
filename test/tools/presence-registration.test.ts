@@ -80,7 +80,13 @@ describe('register_agent patch semantics (issue #68)', () => {
       });
       const second = await client.callTool({
         name: 'start_work',
-        arguments: { task_id: 'T-2', title: 'Second task', kind: 'claude-code', agent_id: AGENT },
+        arguments: {
+          task_id: 'T-2',
+          title: 'Second task',
+          kind: 'claude-code',
+          agent_id: AGENT,
+          agent_token: repos.agentCredentials.issue(AGENT),
+        },
       });
 
       expect(second.isError).not.toBe(true);

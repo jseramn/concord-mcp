@@ -11,7 +11,6 @@ import { harnessConfigFor } from '../domain/harness-config.js';
 import {
   identityForRequest,
   parseOpenCodeRequestIdentityMetadata,
-  resolveActorId,
   type AgentIdentity,
   type OpenCodeRequestIdentityMetadata,
 } from '../domain/identity.js';
@@ -37,6 +36,7 @@ import {
   type HandoffLifecycleResult,
 } from './handoff-lifecycle.js';
 import { handleHandoff, type HandoffResult } from './handoff.js';
+import { actorArgs, claimingAgent, proveActor } from './agent-proof.js';
 import { handleRegisterAgent, type RegisterAgentResult } from './register-agent.js';
 import {
   handleAcceptTask,
@@ -550,18 +550,15 @@ export function registerWorkflowTools(
     });
   };
 
-  /** Stamp the resolved actor onto a write tool's arguments. Throws with the
-   *  fix-it message when neither the session nor the caller identifies anyone. */
   const sessionForRequest = (
     meta: OpenCodeRequestIdentityMetadata | undefined,
   ): AgentIdentity | undefined => identityForRequest(session, requestIdentity?.(meta));
-  const withActor = <T extends { agent_id?: string | undefined }>(
+  /** Stamp the proven actor onto a write tool's arguments; throws a fix-it message if none. */
+  const withActor = <T extends { agent_id?: string | undefined; agent_token?: string | undefined }>(
+    callRepos: Repositories,
     args: T,
     meta: OpenCodeRequestIdentityMetadata | undefined,
-  ): WithActor<T> => ({
-    ...args,
-    agent_id: resolveActorId(sessionForRequest(meta), args.agent_id),
-  });
+  ): WithActor<Omit<T, 'agent_token'>> => actorArgs(callRepos, sessionForRequest(meta), args);
 
   server.registerTool(
     'start_work',
@@ -576,13 +573,18 @@ export function registerWorkflowTools(
       const workspace = selectToolWorkspace(selectWorkspace, args.workspace_id);
       const requestMeta = parseOpenCodeRequestIdentityMetadata(extra._meta);
       const requestSession = sessionForRequest(requestMeta);
+      const { agent_token: suppliedToken, ...startArgs } = args;
+      const actor = proveActor(repos, requestSession, args.agent_id, suppliedToken, true);
       // The session's kind wins alongside its id: the id embeds the kind, so
       // registering under a different one would describe an agent that is not
       // the one being addressed.
-      const result = handleStartWork(repos, {
-        ...withActor(args, requestMeta),
-        kind: requestSession?.kind ?? args.kind,
-      });
+      const { result, issuedToken } = claimingAgent(repos, actor, () =>
+        handleStartWork(repos, {
+          ...startArgs,
+          agent_id: actor.agentId,
+          kind: requestSession?.kind ?? args.kind,
+        }),
+      );
       const startedTaskFlowId = taskFlowId(result.claim.task.taskId);
       if (startedTaskFlowId !== undefined) {
         telemetry?.recordEvent({
@@ -605,7 +607,11 @@ export function registerWorkflowTools(
             type: 'text',
             text: withWorkspaceText(
               `Started ${task.taskId}; status ${task.status}, version ${String(task.version)}, ` +
-                `${String(result.claim.overlaps.length)} overlap(s).`,
+                `${String(result.claim.overlaps.length)} overlap(s).` +
+                (issuedToken === undefined
+                  ? ''
+                  : ` Your agent_token is "${issuedToken}": pass it with agent_id ` +
+                    `"${actor.agentId}" on every Concord call, and never share it.`),
               workspace,
             ),
           },
@@ -620,6 +626,7 @@ export function registerWorkflowTools(
             reasons: overlap.reasons,
           })),
           breadth_reasons: result.claim.breadthReasons,
+          ...(issuedToken === undefined ? {} : { agent_token: issuedToken }),
         },
       });
     },
@@ -771,7 +778,11 @@ export function registerWorkflowTools(
           ? null
           : (taskFlowId(messageTaskId) ?? null);
       try {
-        const result = await handleUpdateWork(callRepos, withActor(args, requestMeta), dispatcher);
+        const result = await handleUpdateWork(
+          callRepos,
+          withActor(callRepos, args, requestMeta),
+          dispatcher,
+        );
         onWrite?.(workspace);
         if ('update' in result) {
           return withCallAdvisories({
@@ -903,7 +914,7 @@ export function registerWorkflowTools(
     (args, extra) => {
       const workspace = selectToolWorkspace(selectWorkspace, args.workspace_id);
       const requestMeta = parseOpenCodeRequestIdentityMetadata(extra._meta);
-      const result = handleTransferWork(repos, withActor(args, requestMeta));
+      const result = handleTransferWork(repos, withActor(repos, args, requestMeta));
       recordTaskTransition(result.task.taskId, args.action, result.task.status);
       onWrite?.(workspace);
       return withSessionAdvisories({
@@ -938,7 +949,7 @@ export function registerWorkflowTools(
     (args, extra) => {
       const workspace = selectToolWorkspace(selectWorkspace, args.workspace_id);
       const requestMeta = parseOpenCodeRequestIdentityMetadata(extra._meta);
-      const result = handleFinishWork(repos, withActor(args, requestMeta));
+      const result = handleFinishWork(repos, withActor(repos, args, requestMeta));
       const finishedTaskFlowId = taskFlowId(result.task.taskId);
       if (finishedTaskFlowId !== undefined) {
         telemetry?.recordEvent({

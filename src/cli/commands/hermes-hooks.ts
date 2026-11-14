@@ -56,6 +56,7 @@ export function hermesHookOutput(
         readonly agentId: string;
         readonly workspaceId: string | undefined;
         readonly others: readonly RosterLine[];
+        readonly agentToken?: string;
       }
     | undefined,
   messages: readonly DeliverableMessage[],
@@ -63,7 +64,14 @@ export function hermesHookOutput(
   const parts = [
     ...(start === undefined
       ? []
-      : [hermesSessionStartMessage(start.agentId, start.workspaceId, start.others)]),
+      : [
+          hermesSessionStartMessage(
+            start.agentId,
+            start.workspaceId,
+            start.others,
+            start.agentToken,
+          ),
+        ]),
     ...(messages.length === 0 ? [] : [renderInboxBody(messages)]),
   ];
   return parts.length === 0 ? NO_OUTPUT : JSON.stringify({ context: parts.join('\n\n') });
@@ -83,6 +91,7 @@ export function handleLocalHermesHook(
         others: buildRoster(repos.agents.list(), Date.now()).filter(
           (peer) => peer.agentId !== identity.agentId,
         ),
+        agentToken: repos.agentCredentials.issue(identity.agentId),
       }
     : undefined;
   return hermesHookOutput(start, drainInbox(repos, identity.agentId, PROVIDER));

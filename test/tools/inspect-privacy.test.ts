@@ -126,23 +126,55 @@ describe('inbox privacy', () => {
     expect(repos.agentMessages.get(messageId)?.status).toBe('sent');
   });
 
-  it('trusts an agent naming itself only where the session is invisible', () => {
-    const messageId = send(repos, 'alpha', 'beta', 'k1');
+  it('shows an agent Concord cannot see nothing private for a bare agent_id', () => {
+    const toBeta = send(repos, 'alpha', 'beta', 'k1');
+    const fromBeta = send(repos, 'beta', 'gamma', 'k2');
+    repos.agentCredentials.issue('beta');
 
-    const named = handleInspectWork(repos, { message_id: messageId, agent_id: 'beta' });
+    for (const proof of [{}, { agent_token: 'guessed' }]) {
+      const inbox = handleInspectWork(repos, { agent_id: 'beta', ...proof });
+      if (inbox.scope !== 'agent') throw new Error('expected agent scope');
+      expect(inbox.communication.private).toBe(true);
+      expect(inbox.communication).not.toHaveProperty('inbox');
+      expect(inbox.communication).not.toHaveProperty('outbox');
+      expect(JSON.stringify(inbox)).not.toContain('alpha to beta');
+      for (const messageId of [toBeta, fromBeta]) {
+        expect(() =>
+          handleInspectWork(repos, { message_id: messageId, agent_id: 'beta', ...proof }),
+        ).toThrow(/does not exist/);
+      }
+    }
+    expect(repos.agentMessages.get(toBeta)?.status).toBe('sent');
+  });
+
+  it('shows an agent its own mail where the session is invisible once it proves its token', () => {
+    const messageId = send(repos, 'alpha', 'beta', 'k1');
+    const token = repos.agentCredentials.issue('beta');
+
+    const named = handleInspectWork(repos, {
+      message_id: messageId,
+      agent_id: 'beta',
+      agent_token: token,
+    });
     if (named.scope !== 'message') throw new Error('expected message scope');
     expect(named.thread[0]?.content).toBe('alpha to beta');
-    // Naming yourself is trusted for reading, never for changing a receipt.
-    expect(repos.agentMessages.get(messageId)?.status).toBe('sent');
-    const inbox = handleInspectWork(repos, { agent_id: 'beta' });
+    const inbox = handleInspectWork(repos, { agent_id: 'beta', agent_token: token });
     if (inbox.scope !== 'agent' || inbox.communication.private) {
       throw new Error('expected own agent scope');
     }
     expect(inbox.communication.inbox).toHaveLength(1);
-    expect(repos.agentMessages.get(messageId)?.status).toBe('sent');
+    expect(repos.agentMessages.get(messageId)?.status).toBe('read');
+    // Another agent's token proves nothing about beta.
+    const other = repos.agentCredentials.issue('gamma');
+    const spoofed = handleInspectWork(repos, { agent_id: 'beta', agent_token: other });
+    expect(spoofed.scope === 'agent' && spoofed.communication.private).toBe(true);
     // A visible session always wins over a named one.
     expect(() =>
-      handleInspectWork(repos, { message_id: messageId, agent_id: 'beta' }, 'gamma'),
+      handleInspectWork(
+        repos,
+        { message_id: messageId, agent_id: 'beta', agent_token: token },
+        'gamma',
+      ),
     ).toThrow(/does not exist/);
   });
 });

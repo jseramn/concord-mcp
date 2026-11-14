@@ -23,7 +23,8 @@ This project uses Concord MCP. Keep coordination to the five workflow tools:
 - **Before editing**, call \`start_work\` with the task, your agent kind, and
   expected files or modules. It registers presence, accepts assigned work when
   appropriate, claims the scope, and returns overlap warnings. Concord derives
-  your \`agent_id\` from your session — omit it unless your client told you one.
+  your \`agent_id\` from your session — omit it unless your client told you one,
+  and then pass the \`agent_token\` it gave you too.
 - Use \`inspect_work\` to read the workspace, one task, one agent, or one message
   thread. Use \`update_work\` for durable progress and for live prompts/replies
   to another promptable workspace agent, including while that agent is busy.
@@ -68,7 +69,7 @@ This project uses Concord MCP. Keep coordination to the five workflow tools:
 
 - **Before editing**, call \`start_work\` with the task, your agent kind (\`antigravity\`), and
   expected files or modules. Lifecycle hooks (\`.agents/hooks.json\`) register your session
-  and inject your \`agent_id\` into context — pass this \`agent_id\` on your calls.
+  and inject your \`agent_id\` and \`agent_token\` into context — pass both on your calls.
 - Use \`inspect_work\` to read the workspace, one task, one agent, or one message
   thread. Use \`update_work\` for durable progress and for live prompts/replies
   to another promptable workspace agent.

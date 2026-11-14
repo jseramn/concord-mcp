@@ -24,7 +24,20 @@ const agentIdField = z
   .optional()
   .describe(
     'Usually omit — Concord derives your identity from your session. Pass only the id your ' +
-      'client told you (Codex); a session Concord can see always wins.',
+      'client told you (Codex), with its agent_token; a session Concord can see always wins.',
+  );
+
+/**
+ * Proof that the caller is the `agent_id` it names, for clients whose session
+ * Concord cannot see. Ignored when Concord can see the session.
+ */
+const agentTokenField = z
+  .string()
+  .min(1)
+  .optional()
+  .describe(
+    'Pass only with agent_id, where your client told you to: the agent_token your session ' +
+      'start hook or your first start_work gave you. Never share it.',
   );
 
 const taskVersionField = z
@@ -104,6 +117,7 @@ export const startWorkInputShape = {
   title: claimMetadataField('Short human-readable title').min(1),
   kind: claimMetadataField('Agent type or provider, e.g. claude-code or codex').min(1),
   agent_id: agentIdField,
+  agent_token: agentTokenField,
   owner: claimMetadataField('Human accountable for this agent and task').optional(),
   model: claimMetadataField('Model the agent is running').optional(),
   summary: claimMetadataField('One-line description of the current work').optional(),
@@ -130,8 +144,9 @@ export const inspectWorkInputShape = {
     .describe(
       'Your own agent id to read your inbox/outbox with receipts (another agent shows presence ' +
         'only). With message_id or task_id, names you as the reader where Concord cannot see ' +
-        'your session.',
+        'your session; there it must come with your agent_token.',
     ),
+  agent_token: agentTokenField,
   message_id: z.string().min(1).optional().describe('Prompt/reply thread to inspect'),
   include_superseded: z
     .boolean()
@@ -174,6 +189,7 @@ export const updateWorkInputShape = {
     .optional()
     .describe('Why the replaced decision no longer holds'),
   agent_id: agentIdField,
+  agent_token: agentTokenField,
   to_agent_id: z.string().min(1).optional().describe('Recipient required for prompt'),
   reply_to_message_id: z.string().min(1).optional().describe('Message being answered for reply'),
   idempotency_key: z
@@ -206,6 +222,7 @@ export const transferWorkInputShape = {
     .enum(transferWorkActionValues)
     .describe('Ownership action to apply through the versioned task state machine'),
   agent_id: agentIdField,
+  agent_token: agentTokenField,
   expected_version: taskVersionField,
   to_agent_id: z.string().min(1).optional().describe('Required for assign, reassign, and offer'),
   handoff_id: z
@@ -233,6 +250,7 @@ export type TransferWorkInput = z.infer<z.ZodObject<typeof transferWorkInputShap
 export const finishWorkInputShape = {
   task_id: taskIdField,
   agent_id: agentIdField,
+  agent_token: agentTokenField,
   expected_version: taskVersionField,
   outcome: z
     .enum(['handoff', 'review_ready', 'complete', 'closed'])
