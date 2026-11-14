@@ -52,10 +52,29 @@ export type PeerMessage = Pick<
   'messageId' | 'senderAgentId' | 'taskId' | 'content'
 >;
 
+const CONCORD_BRACKET = /\[(?=\s*concord\b)/giu;
+
+/**
+ * A sender's content with every `[concord…` escaped to `\[concord…`, so it can
+ * neither pass for a header to the reader nor to `renderedMessageIds`.
+ */
+function neutralizeContent(content: string): string {
+  return content.replace(CONCORD_BRACKET, '\\[');
+}
+
+/** A header field reduced to one token, so it cannot end the header or add fields to it. */
+function headerToken(value: string): string {
+  return value.replace(/[\s[\]]/gu, '_');
+}
+
+function renderHeader(message: Pick<PeerMessage, 'messageId' | 'senderAgentId'>): string {
+  return `[concord from ${headerToken(message.senderAgentId)} id=${headerToken(message.messageId)}`;
+}
+
 /** One message as the recipient sees it, whichever channel carries it. */
 export function renderPeerMessage(message: PeerMessage): string {
-  const task = message.taskId === null ? '' : ` task=${message.taskId}`;
-  return `[concord from ${message.senderAgentId} id=${message.messageId}${task}]\n${message.content}`;
+  const task = message.taskId === null ? '' : ` task=${headerToken(message.taskId)}`;
+  return `${renderHeader(message)}${task}]\n${neutralizeContent(message.content)}`;
 }
 
 /** The human-readable block shared by every channel. */
@@ -63,7 +82,7 @@ export function renderInboxBody(messages: readonly DeliverableMessage[]): string
   return messages.map(renderPeerMessage).join('\n\n');
 }
 
-const RENDERED_MESSAGE_ID = /\[concord from \S+ id=([^\s\]]+)/gu;
+const RENDERED_MESSAGE_ID = /(?<!\\)\[concord from \S+ id=([^\s\]]+)/gu;
 
 /**
  * The ids of every message rendered in `text` by any channel above — read back
@@ -77,8 +96,8 @@ export function renderedMessageIds(text: string): string[] {
 export function renderMonitorLines(messages: readonly DeliverableMessage[]): string[] {
   return messages.map(
     (message) =>
-      `[concord from ${message.senderAgentId} id=${message.messageId}] ` +
-      message.content.replace(/\s+/gu, ' ').trim(),
+      `${renderHeader(message)}] ` +
+      neutralizeContent(message.content.replace(/\s+/gu, ' ').trim()),
   );
 }
 

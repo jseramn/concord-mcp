@@ -6,6 +6,14 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- A peer message can no longer forge a `[concord from … id=…]` header inside
+  its content. Content is escaped (`\[concord…`) when rendered, header fields
+  are kept to one token, and read receipts ignore escaped headers, so a forged
+  header neither looks like another sender nor marks another pending message
+  read.
+
 ## [0.22.0] - 2026-11-11
 
 ### Added
