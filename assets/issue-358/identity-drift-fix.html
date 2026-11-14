@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fix: live session binding after /resume (re #358)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}.pr{fill:#a77a7a}
+.cur{fill:#e6e6e6}
+</style></head><body>
+<svg viewBox="0 0 1200 520" role="img" aria-label="Animated diagram: after /resume the SessionStart hook writes which agent each client pid hosts in session_bindings; the MCP server resolves that binding per request through its own ancestor chain, so it acts as the resumed session — while kind mismatches, dead agents, and operator ids keep their own identity.">
+<rect width="1200" height="520" fill="#000"/>
+<!-- header -->
+<text x="30" y="34"><tspan class="d">building@jseramn:~$</tspan> cat fix-358.binding</text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.9">act 1 · <tspan class="a">the hook binds the client pid</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="5,9.9">act 2 · <tspan class="a">the server resolves live</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="10,99">act 3 · <tspan class="a">bindings that are not ours do not bind</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- claude terminal -->
+<rect x="30" y="72" width="350" height="132" class="bx"/>
+<text x="46" y="92" class="xs d">claude code · client pid 4812</text>
+<line x1="30" y1="100" x2="380" y2="100" class="ln"/>
+<g class="s">
+<text x="46" y="122" data-t="0.6,99" data-type="0.6,1.2">$ claude</text>
+<text x="46" y="140" class="d" data-t="1.4,99">session fae74f31 · spawns concord-mcp</text>
+<text x="46" y="164" data-t="2.2,99" data-type="2.2,2.9">$ /resume</text>
+<text x="46" y="182" class="d" data-t="3.0,99">resumed session e54a37fe · same pid</text>
+</g>
+<rect id="cur" width="7" height="13" class="cur"/>
+
+<!-- sessionstart hook -->
+<rect x="30" y="252" width="350" height="104" class="bs"/>
+<text x="205" y="274" text-anchor="middle" class="s">SessionStart hook</text>
+<text x="205" y="294" text-anchor="middle" class="xs d">source=resume · sees e54a37fe</text>
+<text x="205" y="322" text-anchor="middle" class="s a" data-t="3.3,99">writes binding: pid 4812 → claude-code:73f7b11c</text>
+<path id="pHook" d="M205,204 V252" class="la" data-t="3.0,99"/>
+
+<!-- session_bindings table -->
+<rect x="470" y="252" width="330" height="104" class="bx"/>
+<text x="486" y="274" class="xs d">session_bindings · schema v18</text>
+<line x1="470" y1="282" x2="800" y2="282" class="ln"/>
+<g class="s">
+<text x="486" y="304" data-t="3.6,99">pid 4812   →   <tspan class="a">73f7b11c</tspan></text>
+<text x="486" y="324" class="d" data-t="3.9,99">pid 5300   →   73f7b11c   <tspan class="xs">ancestor</tspan></text>
+<text x="486" y="344" class="d" data-t="4.2,99">pid 6144   →   73f7b11c   <tspan class="xs">ancestor</tspan></text>
+</g>
+<path id="pBind" d="M380,304 H470" class="la" data-t="3.3,99"/>
+
+<!-- concord-mcp server -->
+<rect x="880" y="72" width="290" height="128" class="bs"/>
+<text x="1025" y="94" text-anchor="middle" class="h">concord-mcp</text>
+<text x="1025" y="116" text-anchor="middle" class="xs d">env at spawn · still fae74f31</text>
+<text x="1025" y="136" text-anchor="middle" class="s f" data-t="1.4,99">cd4572bf · stale</text>
+<text x="1025" y="162" text-anchor="middle" class="s" data-t="6.3,99">request → check <tspan class="a">my own ancestors</tspan></text>
+<text x="1025" y="182" text-anchor="middle" class="s a" data-t="7.1,99">pid 4812 is bound → act as 73f7b11c</text>
+<path id="pReq" d="M800,304 C860,304 860,164 880,164" class="la" data-t="6.3,99"/>
+
+<!-- drift advisory -->
+<g data-t="7.9,99">
+<rect x="880" y="222" width="290" height="58" class="bx"/>
+<text x="1025" y="244" text-anchor="middle" class="s">identity_drift advisory</text>
+<text x="1025" y="264" text-anchor="middle" class="xs d">env cd4572bf → live 73f7b11c · once per session</text>
+</g>
+
+<!-- store: correct attribution -->
+<rect x="470" y="72" width="330" height="128" class="bx"/>
+<text x="486" y="92" class="xs d">what the store records now</text>
+<line x1="470" y1="100" x2="800" y2="100" class="ln"/>
+<g class="s">
+<text x="486" y="122" data-t="8.4,99" data-type="8.4,9.1">update_work operation=prompt</text>
+<text x="486" y="144" data-t="9.0,99">sender_agent_id=<tspan class="a">73f7b11c</tspan></text>
+<text x="486" y="164" class="xs d" data-t="9.0,99">  replies route to the live session's inbox</text>
+<text x="486" y="184" class="a" data-t="9.4,99">one session, one agent</text>
+</g>
+<path id="pOk" d="M880,160 H800" class="la" data-t="8.4,99"/>
+
+<!-- guards -->
+<g data-t="10.2,99">
+<rect x="30" y="390" width="370" height="64" class="bx"/>
+<text x="46" y="412" class="xs d">grok server, same client chain</text>
+<text x="46" y="436" class="s">binding kind claude-code ≠ env grok → <tspan class="a">keep grok:*</tspan></text>
+</g>
+<g data-t="10.8,99">
+<rect x="430" y="390" width="370" height="64" class="bx"/>
+<text x="446" y="412" class="xs d">bound agent archived</text>
+<text x="446" y="436" class="s">binding lapses with its agent → <tspan class="a">env path</tspan></text>
+</g>
+<g data-t="11.4,99">
+<rect x="830" y="390" width="340" height="64" class="bx"/>
+<text x="846" y="412" class="xs d">CONCORD_AGENT_ID set</text>
+<text x="846" y="436" class="s">operator origin → <tspan class="a">binding never wins</tspan></text>
+</g>
+
+<!-- packets -->
+<rect class="pk" width="6" height="6" data-pk="pHook,,3.0,4.9,1.4,0"/>
+<rect class="pw" width="5" height="5" data-pk="pBind,,3.3,4.9,1.4,0.5"/>
+<rect class="pk" width="6" height="6" data-pk="pReq,,6.3,9.9,1.5,0"/>
+<rect class="pk" width="6" height="6" data-pk="pOk,,8.4,9.9,1.2,0.4"/>
+
+<!-- captions -->
+<g text-anchor="middle">
+<text x="600" y="482" class="h" data-t="3.9,4.9"><tspan class="d">&gt;</tspan> the hook saw the resumed session — it binds the client pid to it</text>
+<text x="600" y="482" class="h" data-t="7.9,9.9"><tspan class="d">&gt;</tspan> the server asks who is live, not what it was spawned as</text>
+<text x="600" y="482" class="h" data-t="11.9,99"><tspan class="d">&gt;</tspan> same kind only · live agents only · operator always wins</text>
+</g>
+<line x1="30" y1="496" x2="1170" y2="496" class="ln"/>
+<line id="prog" x1="30" y1="496" x2="30" y2="496" class="la"/>
+<text x="30" y="514" class="xs d">by @jseramn · jseramn.tech · re #358</text>
+<text x="1170" y="514" text-anchor="end" class="xs f">session ids and agent ids as observed · loop 14s</text>
+</svg>
+<script>
+(()=>{const T=14,R=.25,q=s=>[...document.querySelectorAll(s)],c=x=>x<0?0:x>1?1:x;
+const fade=q('[data-t]').map(e=>[e,...e.dataset.t.split(',').map(Number)]);
+const typ=q('[data-type]').map(e=>{const[a,b]=e.dataset.type.split(',').map(Number);return[e,a,b,e.textContent]});
+const pk=q('[data-pk]').map(e=>{const p=e.dataset.pk.split(',');return[e,document.getElementById(p[0]),p[1]?document.getElementById(p[1]):null,+p[2],+p[3],+p[4],+p[5]]});
+const cur=document.getElementById('cur'),prog=document.getElementById('prog');
+function f(t){
+for(const[e,a,b]of fade){let o=c((t-a)/R)*c((b-t)/R);if(e.dataset.blink)o*=Math.floor(t*4)%2?1:.3;e.style.opacity=o}
+let ce=null;for(const[e,a,b,s]of typ){const n=Math.round(c((t-a)/(b-a))*s.length);e.textContent=s.slice(0,n);if(t>=a-.3&&t<b+.9&&+e.style.opacity>0)ce=e}
+if(ce){const x=+ce.getAttribute('x'),w=ce.getComputedTextLength?ce.getComputedTextLength():0;cur.setAttribute('x',x+w+2);cur.setAttribute('y',+ce.getAttribute('y')-11);cur.style.opacity=Math.floor(t*2.5)%2?0:1}else{cur.style.opacity=0}
+for(const[e,p1,p2,a,b,P,off]of pk){if(t<a||t>b){e.style.opacity=0;continue}
+const u=((t-a+off)%P)/P,L1=p1.getTotalLength(),L2=p2?p2.getTotalLength():0,d=u*(L1+L2),pt=d<L1?p1.getPointAtLength(d):p2.getPointAtLength(d-L1);
+e.setAttribute('x',pt.x-3);e.setAttribute('y',pt.y-3);e.style.opacity=1}
+prog.setAttribute('x2',30+1140*t/T)}
+const m=location.hash.match(/t=([\d.]+)/);
+if(m)f(+m[1]);else if(matchMedia('(prefers-reduced-motion: reduce)').matches)f(13.9);
+else{const s=performance.now();const l=n=>{f(((n-s)/1000)%T);requestAnimationFrame(l)};requestAnimationFrame(l)}})();
+</script>
+</body></html>
