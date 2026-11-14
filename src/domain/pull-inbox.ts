@@ -52,10 +52,34 @@ export type PeerMessage = Pick<
   'messageId' | 'senderAgentId' | 'taskId' | 'content'
 >;
 
+/** Anything in sender-controlled text that could pass for a `[concord …]` header. */
+const HEADER_LOOKALIKE = /\[(?=\s*concord\b)/giu;
+
+/**
+ * Message content is written by a peer, so it must never contain something a
+ * reader — or `renderedMessageIds` — would take for a real header: a forged
+ * `[concord from <lead> id=<other message>]` would impersonate another sender
+ * and mark a message as read that was never shown.
+ */
+function neutralizeContent(content: string): string {
+  return content.replace(HEADER_LOOKALIKE, '[quoted ');
+}
+
+/** A header field is one token: whitespace or brackets in it could forge another field. */
+function headerField(value: string): string {
+  return value.replace(/[\s[\]]+/gu, '_');
+}
+
+function renderHeader(
+  message: Pick<PeerMessage, 'messageId' | 'senderAgentId' | 'taskId'>,
+): string {
+  const task = message.taskId === null ? '' : ` task=${headerField(message.taskId)}`;
+  return `[concord from ${headerField(message.senderAgentId)} id=${headerField(message.messageId)}${task}]`;
+}
+
 /** One message as the recipient sees it, whichever channel carries it. */
 export function renderPeerMessage(message: PeerMessage): string {
-  const task = message.taskId === null ? '' : ` task=${message.taskId}`;
-  return `[concord from ${message.senderAgentId} id=${message.messageId}${task}]\n${message.content}`;
+  return `${renderHeader(message)}\n${neutralizeContent(message.content)}`;
 }
 
 /** The human-readable block shared by every channel. */
@@ -77,8 +101,8 @@ export function renderedMessageIds(text: string): string[] {
 export function renderMonitorLines(messages: readonly DeliverableMessage[]): string[] {
   return messages.map(
     (message) =>
-      `[concord from ${message.senderAgentId} id=${message.messageId}] ` +
-      message.content.replace(/\s+/gu, ' ').trim(),
+      `${renderHeader({ ...message, taskId: null })} ` +
+      neutralizeContent(message.content.replace(/\s+/gu, ' ').trim()),
   );
 }
 

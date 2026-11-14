@@ -6,6 +6,13 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Security
+
+- A peer message can no longer forge a `[concord from … id=…]` header. Text in
+  message content that looks like a header is rendered as `[quoted concord …`,
+  and whitespace or brackets in header fields become `_`, so a message cannot
+  impersonate another sender or mark a different message as read.
+
 ## [0.22.0] - 2026-11-11
 
 ### Added
