@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>concord-inbox monitor vs /resume (re #180)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.lb{fill:none;stroke:#8aa0c6;stroke-width:1.2}
+.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}.pr{fill:#a77a7a}.pb{fill:#8aa0c6}
+</style></head><body>
+<svg viewBox="0 0 1200 540" role="img" aria-label="Animated diagram: Claude Code arms the concord-inbox plugin monitor once per process; after /resume the monitor key is already armed so no new monitor spawns, the old one exits with its harness, and messages to the resumed session sit queued until a hook happens to drain them.">
+<rect width="1200" height="540" fill="#000"/>
+<text x="30" y="34"><tspan class="d">claude --resume</tspan> · monitor lifecycle hypothesis</text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.2">act 1 · <tspan class="a">monitor armed, delivering</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="4.3,8.2">act 2 · <tspan class="r">/resume — re-arm deduped</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="8.3,99">act 3 · <tspan class="r">idle agent unreachable</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- ======== TOP ROW: claude sessions ======== -->
+<rect x="30" y="70" width="340" height="120" class="bx"/>
+<text x="46" y="92" class="h" data-t="0,99">claude code · session A</text>
+<text x="46" y="116" class="s d" data-t="0,4.4">env CLAUDE_CODE_SESSION_ID=sess-A</text>
+<text x="46" y="140" class="s d" data-t="0,4.4">→ agent claude-code:aaa111</text>
+<text x="46" y="164" class="s a" data-t="0,4.4">monitor armed ✓ · polls every 2s</text>
+
+<rect x="30" y="210" width="340" height="140" class="bx" data-t="4.5,99"/>
+<text x="46" y="234" class="h" data-t="4.5,99">claude code · session B</text>
+<text x="46" y="258" class="s d" data-t="4.5,99">/resume → SessionStart source=resume</text>
+<text x="46" y="282" class="s d" data-t="4.5,99">env CLAUDE_CODE_SESSION_ID=sess-B</text>
+<text x="46" y="306" class="s d" data-t="4.5,99">→ agent claude-code:bbb222</text>
+<text x="46" y="330" class="s r" data-t="4.5,99">monitor arm attempt → deduped ✗</text>
+
+<!-- ======== MIDDLE: plugin monitor ======== -->
+<rect x="480" y="70" width="300" height="120" class="bs"/>
+<text x="630" y="94" text-anchor="middle" class="h">watch-inbox.sh</text>
+<text x="630" y="118" text-anchor="middle" class="xs d">plugin monitor · concord-inbox</text>
+<text x="630" y="142" text-anchor="middle" class="s a" data-t="0,4.4">alive · draining agent aaa111</text>
+<text x="630" y="164" text-anchor="middle" class="s r" data-t="5.6,99">exited — harness_pid gone</text>
+
+<rect x="480" y="230" width="300" height="110" class="bx"/>
+<text x="630" y="254" text-anchor="middle" class="s">armedMonitorKeys</text>
+<text x="630" y="276" text-anchor="middle" class="xs d" data-t="0,99">process-global dedup set</text>
+<text x="630" y="300" text-anchor="middle" class="s" data-t="0,99">"concord:concord-inbox" → <tspan class="a">armed</tspan></text>
+<text x="630" y="322" text-anchor="middle" class="s r" data-t="4.5,99">key never cleared on exit (#111286)</text>
+<text x="630" y="344" text-anchor="middle" class="xs f" data-t="4.5,99">reload prints success, spawns nothing</text>
+
+<!-- ======== RIGHT: inbox / messages ======== -->
+<rect x="880" y="70" width="290" height="270" class="bx"/>
+<text x="896" y="94" class="xs d">concord inbox</text>
+<line x1="880" y1="104" x2="1170" y2="104" class="ln"/>
+<g class="s">
+<text x="896" y="130" data-t="1.2,4.4">msg→aaa111 <tspan class="a">delivered ✓</tspan></text>
+<text x="896" y="158" data-t="5.0,99">msg→bbb222</text>
+<text x="896" y="180" class="r" data-t="6.2,99">status: sent · queued_pull</text>
+<text x="896" y="204" class="d" data-t="6.2,99">no live session taking it</text>
+<text x="896" y="232" class="s" data-t="8.6,99">only PostToolUse/Stop hooks</text>
+<text x="896" y="254" class="s" data-t="8.6,99">drain — while agent is active</text>
+<text x="896" y="282" class="r" data-t="9.4,99">idle at prompt → never arrives</text>
+<text x="896" y="310" class="xs f" data-t="9.4,99">monitor existed to close exactly this gap</text>
+</g>
+
+<!-- ======== PATHS ======== -->
+<path id="pA" d="M370,130 C430,130 430,130 480,130" class="ln"/>
+<path id="pB" d="M370,280 C430,280 430,280 480,280" class="ln"/>
+<path id="pMon" d="M780,130 C830,130 830,200 880,200" class="la"/>
+<path id="pMsg1" d="M370,110 C620,110 750,110 880,130" class="la"/>
+<path id="pMsg2" d="M370,300 C620,300 750,300 880,180" class="lr"/>
+
+<!-- packets -->
+<rect class="pk" width="6" height="6" data-pk="pMsg1,1.4,2.0"/>
+<rect class="pk" width="6" height="6" data-pk="pMon,1.6,2.2"/>
+<rect class="pr" width="6" height="6" data-pk="pMsg2,5.2,5.8"/>
+<rect class="pr" width="6" height="6" data-pk="pMsg2,5.2,5.8" style="transition-delay:0.3s"/>
+
+<!-- fix direction -->
+<rect x="30" y="390" width="1140" height="90" class="bs"/>
+<text x="46" y="416" class="s">concord-side fallback (proposal)</text>
+<text x="46" y="440" class="xs d" data-t="10.0,99">SessionStart (source=resume|clear) checks for a live monitor; if absent, spawn watch-inbox.sh detached —</text>
+<text x="46" y="462" class="xs d" data-t="10.0,99">identity via liveSessionIdentity() (#366) so stale spawn-env can't misroute the drain</text>
+
+<!-- caption -->
+<text x="600" y="510" text-anchor="middle" class="h" data-t="9.8,99"><tspan class="d">&gt;</tspan> upstream dedup bug + stale env = monitor gap · fallback removes the dependency</text>
+</svg>
+</body></html>
