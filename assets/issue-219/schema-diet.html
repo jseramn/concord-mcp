@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tools/list schema diet (re #219)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1100px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.ln{fill:none;stroke:#3a3a3a}
+.bar{fill:#3a3a3a}
+.barB{fill:#a77a7a}
+.barA{fill:#9fb4a6}
+</style></head><body>
+<svg viewBox="0 0 1100 480" role="img" aria-label="Bar chart: the five Concord MCP tools cost about 12 KB in tools/list today; deduplicating repeated field descriptions and tightening the longest ones is estimated to bring it near 10 KB, enforced by a new size-budget test.">
+<rect width="1100" height="480" fill="#000"/>
+<text x="30" y="34"><tspan class="d">tools/list payload · concord-mcp@0.23.0</tspan></text>
+<text x="1070" y="34" text-anchor="end" class="d" data-t="0,3.4">measured, not estimated</text>
+<text x="1070" y="34" text-anchor="end" class="d" data-t="3.5,99"><tspan class="a">~20–25% diet</tspan> + budget test</text>
+<line x1="30" y1="48" x2="1070" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- scale: 1KB = 62px, baseline x=230, max 12KB→~950px -->
+<text x="30" y="120" class="s">finish_work</text>
+<rect class="barB" x="230" y="104" width="0" height="26" data-t="0.8,99" id="b1" data-w="0.8,2.0,221"/>
+<rect class="barA" x="230" y="134" width="0" height="26" data-t="0.8,99" id="b1a" data-t="3.9,99" data-w="4.0,5.2,180"/>
+<text x="30" y="160" class="s">transfer_work</text>
+<rect class="barB" x="230" y="144" width="0" height="26" data-t="0.8,99" id="b2" data-w="0.8,2.0,193"/>
+<rect class="barA" x="230" y="174" width="0" height="26" data-t="0.8,99" id="b2a" data-t="3.9,99" data-w="4.0,5.2,155"/>
+<text x="30" y="200" class="s">update_work</text>
+<rect class="barB" x="230" y="184" width="0" height="26" data-t="0.8,99" id="b3" data-w="0.8,2.0,170"/>
+<rect class="barA" x="230" y="214" width="0" height="26" data-t="0.8,99" id="b3a" data-t="3.9,99" data-w="4.0,5.2,140"/>
+<text x="30" y="240" class="s">start_work</text>
+<rect class="barB" x="230" y="224" width="0" height="26" data-t="0.8,99" id="b4" data-w="0.8,2.0,169"/>
+<rect class="barA" x="230" y="254" width="0" height="26" data-t="0.8,99" id="b4a" data-t="3.9,99" data-w="4.0,5.2,140"/>
+<text x="30" y="280" class="s">inspect_work</text>
+<rect class="barB" x="230" y="264" width="0" height="26" data-t="0.8,99" id="b5" data-w="0.8,2.0,130"/>
+<rect class="barA" x="230" y="294" width="0" height="26" data-t="0.8,99" id="b5a" data-t="3.9,99" data-w="4.0,5.2,105"/>
+
+<!-- byte labels -->
+<g class="s" data-t="2.0,99">
+<text x="1210" y="122" text-anchor="end" class="r">3,574 B</text>
+<text x="1210" y="152" text-anchor="end" class="a">~2,900 B</text>
+<text x="1210" y="162" text-anchor="end" class="r">2,472 B</text>
+<text x="1210" y="192" text-anchor="end" class="a">~2,000 B</text>
+<text x="1210" y="202" text-anchor="end" class="r">2,182 B</text>
+<text x="1210" y="232" text-anchor="end" class="a">~1,750 B</text>
+<text x="1210" y="242" text-anchor="end" class="r">2,168 B</text>
+<text x="1210" y="272" text-anchor="end" class="a">~1,750 B</text>
+<text x="1210" y="282" text-anchor="end" class="r">1,624 B</text>
+<text x="1210" y="312" text-anchor="end" class="a">~1,300 B</text>
+</g>
+
+<!-- totals -->
+<text x="230" y="350" class="h" data-t="2.0,99">total <tspan class="r">12,036 B ≈ 3.0k tok</tspan> → <tspan class="a">~10.0k B ≈ 2.5k tok</tspan></text>
+
+<!-- what gets cut -->
+<rect x="30" y="370" width="1040" height="86" class="bx"/>
+<text x="46" y="394" class="s">where the bytes go</text>
+<text x="46" y="418" class="xs d" data-t="4.2,99">field .describe() strings &gt;40 chars: 3,031 B / 30 fields — tool descriptions only ~840 B total</text>
+<text x="46" y="440" class="xs d" data-t="4.2,99">duplicates: agent_id ×4 (149 ch each) · workspace_id ×5 (106 ch) · expected_version ×2</text>
+
+<text x="550" y="470" text-anchor="middle" class="h" data-t="6.0,8.0"><tspan class="d">&gt;</tspan> dedupe via shared constants · tighten longest describes · keep enums</text>
+
+</svg>
+</body></html>
