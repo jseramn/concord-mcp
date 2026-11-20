@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>concord × mistral vibe — verified integration (re #353)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.lb{fill:none;stroke:#8aa0c6;stroke-width:1.2}
+.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}.pr{fill:#a77a7a}.pb{fill:#8aa0c6}
+.cur{fill:#e6e6e6}
+.bar{fill:#2a2a2a}
+</style></head><body>
+<svg viewBox="0 0 1200 560" role="img" aria-label="Animated diagram: a Mistral Vibe session integrates with Concord through two verified channels — lifecycle hooks that register the session and inject drained inbox messages into busy turns, and an MCP stdio server entry that exposes the five workflow tools.">
+<rect width="1200" height="560" fill="#000"/>
+<text x="30" y="34"><tspan class="d">vibe --trust -p "…"</tspan> · verified on vibe 3.1.3</text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.2">act 1 · <tspan class="a">hooks register + observe</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="4.3,8.2">act 2 · <tspan class="b">busy-turn delivery</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="8.3,99">act 3 · <tspan class="a">MCP workflow tools</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- ============ LEFT: vibe session ============ -->
+<rect x="30" y="70" width="330" height="330" class="bx"/>
+<text x="46" y="92" class="h">mistral vibe session</text>
+<text x="46" y="114" class="xs d">.vibe/hooks.toml · .vibe/config.toml</text>
+<line x1="30" y1="124" x2="360" y2="124" class="ln"/>
+<g class="s">
+<text x="46" y="150" data-t="1.0,99" data-type="1.0,1.7,0.05,0">session_start → concord inbox register</text>
+<text x="46" y="172" class="d" data-t="1.0,99" data-type="1.8,2.5,0.05,0">  source=startup · session_id stable</text>
+<text x="46" y="204" data-t="4.6,99" data-type="4.6,5.3,0.05,0">post_tool → concord inbox drain</text>
+<text x="46" y="226" class="d" data-t="4.6,99" data-type="5.4,6.1,0.05,0">  → hook_specific_output.additional_context</text>
+<text x="46" y="258" class="d" data-t="8.6,99" data-type="8.6,9.3,0.05,0">model calls mcp_concord.start_work …</text>
+<text x="46" y="290" class="d" data-t="8.6,99" data-type="9.4,10.1,0.05,0">  via [[mcp_servers]] stdio</text>
+<text x="46" y="330" class="xs f" data-t="2.6,4.2">agent_id = vibe:&lt;hash(session_id)&gt;</text>
+<text x="46" y="348" class="xs f" data-t="2.6,4.2">subagent guard: parent_session_id≠null → skip</text>
+<text x="46" y="376" class="xs b" data-t="6.6,8.2">verified: marker reached the model ✓</text>
+</g>
+
+<!-- ============ MIDDLE: concord cli / inbox ============ -->
+<rect x="470" y="70" width="270" height="330" class="bs"/>
+<text x="605" y="94" text-anchor="middle" class="h">concord cli</text>
+<text x="605" y="118" text-anchor="middle" class="xs d">hooks spawn these per event</text>
+<line x1="470" y1="130" x2="740" y2="130" class="ln"/>
+<g class="s">
+<text x="486" y="158" data-t="2.0,4.2">inbox register</text>
+<text x="486" y="180" class="d" data-t="2.0,4.2">inbox observe (pre_agent prompt)</text>
+<text x="486" y="212" data-t="5.6,8.2">inbox drain --from-hook</text>
+<text x="486" y="234" class="d" data-t="5.6,8.2">prints additional_context JSON</text>
+<text x="486" y="266" class="d" data-t="8.3,99">session_id → agent id</text>
+<text x="486" y="288" class="d" data-t="8.3,99">parent_session_id → skip</text>
+</g>
+<rect x="486" y="316" width="238" height="66" class="bx"/>
+<text x="498" y="338" class="xs d">inbox (sqlite)</text>
+<text x="498" y="358" class="s" data-t="5.9,99"><tspan class="r">1 message</tspan> waiting → drained</text>
+<text x="498" y="376" class="xs a" data-t="6.4,99">✓✓ delivered receipt</text>
+
+<!-- ============ RIGHT: concord-mcp ============ -->
+<rect x="830" y="70" width="340" height="200" class="bs"/>
+<text x="1000" y="94" text-anchor="middle" class="h">concord-mcp (stdio)</text>
+<text x="1000" y="118" text-anchor="middle" class="xs d">command = "concord-mcp" · tools/list ✓</text>
+<line x1="830" y1="130" x2="1170" y2="130" class="ln"/>
+<g class="s">
+<text x="846" y="156" data-t="9.0,99" data-type="9.0,9.7,0.04,0">start_work · inspect_work</text>
+<text x="846" y="178" data-t="9.0,99" data-type="9.8,10.5,0.04,0">update_work · transfer_work</text>
+<text x="846" y="200" data-t="9.0,99" data-type="10.6,11.3,0.04,0">finish_work — five tools, no new surface</text>
+<text x="846" y="228" class="xs f" data-t="10.0,99">headless needs --auto-approve for tool exec</text>
+<text x="846" y="248" class="xs f" data-t="10.0,99">interactive: normal approval prompt</text>
+</g>
+
+<!-- capability boundary box -->
+<rect x="830" y="300" width="340" height="100" class="bx"/>
+<text x="846" y="324" class="s">capability boundary</text>
+<text x="846" y="348" class="s a" data-t="3.4,99">busy-turn delivery: verified ✓</text>
+<text x="846" y="370" class="s r" data-t="3.4,99">idle wake-up: not claimed — no monitor API</text>
+<text x="846" y="392" class="xs d" data-t="3.4,99">notification hook is fire-and-forget</text>
+
+<!-- ============ PATHS ============ -->
+<path id="pReg" d="M360,160 C420,160 420,190 470,190" class="ln"/>
+<path id="pDrain" d="M740,225 C790,225 790,270 830,270" class="ln"/>
+<path id="pCtx" d="M470,250 C400,250 400,300 360,300" class="la"/>
+<path id="pMcp" d="M360,270 C560,270 700,160 830,160" class="lb"/>
+<path id="pMsg" d="M605,316 C605,350 500,350 486,350" class="lr"/>
+
+<!-- packets -->
+<rect class="pk" width="6" height="6" data-pk="pReg,1.9,2.6"/>
+<rect class="pr" width="6" height="6" data-pk="pMsg,5.7,6.3"/>
+<rect class="pk" width="6" height="6" data-pk="pCtx,6.5,7.1"/>
+<rect class="pb" width="6" height="6" data-pk="pMcp,9.5,10.4"/>
+<rect class="pb" width="6" height="6" data-pk="pMcp,9.5,10.4" style="transition-delay:0.4s"/>
+
+<!-- caption -->
+<text x="600" y="530" text-anchor="middle" class="h" data-t="6.8,8.2"><tspan class="d">&gt;</tspan> one session_id → one agent id · hooks carry identity, MCP carries tools</text>
+<text x="600" y="530" text-anchor="middle" class="h" data-t="11.0,99"><tspan class="d">&gt;</tspan> same adapter pattern as Junie (#365) — config writer + hooks + docs</text>
+</svg>
+</body></html>
