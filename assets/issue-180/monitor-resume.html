@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="anim-duration" content="13.5">
 <title>concord-inbox monitor vs /resume (re #180)</title>
 <style>
 html,body{margin:0;background:#000;height:100%}
@@ -46,7 +47,7 @@ text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-siz
 <text x="630" y="142" text-anchor="middle" class="s a" data-t="0,4.4">alive · draining agent aaa111</text>
 <text x="630" y="164" text-anchor="middle" class="s r" data-t="5.6,99">exited — harness_pid gone</text>
 
-<rect x="480" y="230" width="300" height="110" class="bx"/>
+<rect x="480" y="230" width="300" height="130" class="bx"/>
 <text x="630" y="254" text-anchor="middle" class="s">armedMonitorKeys</text>
 <text x="630" y="276" text-anchor="middle" class="xs d" data-t="0,99">process-global dedup set</text>
 <text x="630" y="300" text-anchor="middle" class="s" data-t="0,99">"concord:concord-inbox" → <tspan class="a">armed</tspan></text>
@@ -73,7 +74,7 @@ text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-siz
 <path id="pB" d="M370,280 C430,280 430,280 480,280" class="ln"/>
 <path id="pMon" d="M780,130 C830,130 830,200 880,200" class="la"/>
 <path id="pMsg1" d="M370,110 C620,110 750,110 880,130" class="la"/>
-<path id="pMsg2" d="M370,300 C620,300 750,300 880,180" class="lr"/>
+<path id="pMsg2" d="M370,320 C560,375 780,375 880,235" class="lr"/>
 
 <!-- packets -->
 <rect class="pk" width="6" height="6" data-pk="pMsg1,1.4,2.0"/>
@@ -84,8 +85,8 @@ text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-siz
 <!-- fix direction -->
 <rect x="30" y="390" width="1140" height="90" class="bs"/>
 <text x="46" y="416" class="s">concord-side fallback (proposal)</text>
-<text x="46" y="440" class="xs d" data-t="10.0,99">SessionStart (source=resume|clear) checks for a live monitor; if absent, spawn watch-inbox.sh detached —</text>
-<text x="46" y="462" class="xs d" data-t="10.0,99">identity via liveSessionIdentity() (#366) so stale spawn-env can't misroute the drain</text>
+<text x="46" y="440" class="xs d" data-t="8.8,99">SessionStart (source=resume|clear) checks for a live monitor; if absent, spawn watch-inbox.sh detached —</text>
+<text x="46" y="462" class="xs d" data-t="8.8,99">identity via liveSessionIdentity() (#366) so stale spawn-env can't misroute the drain</text>
 
 <!-- caption -->
 <text x="600" y="510" text-anchor="middle" class="h" data-t="9.8,99"><tspan class="d">&gt;</tspan> upstream dedup bug + stale env = monitor gap · fallback removes the dependency</text>
