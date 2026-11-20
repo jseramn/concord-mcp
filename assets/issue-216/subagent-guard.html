@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>subagent hook guard (re #216)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1100px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}.pr{fill:#a77a7a}
+</style></head><body>
+<svg viewBox="0 0 1100 460" role="img" aria-label="Two hook payloads reach concord inbox drain: one carrying agent_id from a Claude Code subagent is ignored so the parent's message stays queued; one without agent_id drains and delivers it.">
+<rect width="1100" height="460" fill="#000"/>
+<text x="30" y="34"><tspan class="d">concord inbox drain --from-hook</tspan> · verified on 0.23.0</text>
+<text x="1070" y="34" text-anchor="end" class="d" data-t="0,4.4">case 1 · <tspan class="r">subagent payload → skipped</tspan></text>
+<text x="1070" y="34" text-anchor="end" class="d" data-t="4.5,99">case 2 · <tspan class="a">parent payload → delivered</tspan></text>
+<line x1="30" y1="48" x2="1070" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- ======== CASE 1: subagent ======== -->
+<rect x="30" y="70" width="480" height="180" class="bx" data-t="0,99"/>
+<text x="46" y="94" class="h" data-t="0,99">PostToolUse · from a subagent</text>
+<text x="46" y="120" class="s" data-t="0.6,99" data-type="0.6,1.4,0.03,0">{"agent_id":"sub-abc", "session_id":"sess-1"…}</text>
+<text x="46" y="146" class="xs d" data-t="1.5,99">isSubagentHook → agent_id present</text>
+<text x="46" y="172" class="s r" data-t="2.2,99">drain returns early · nothing claimed</text>
+<text x="46" y="200" class="s" data-t="3.0,99">parent's message stays <tspan class="a">queued ✓</tspan></text>
+<text x="46" y="228" class="xs f" data-t="3.0,99">receipt: ✓ sent / not delivered yet</text>
+
+<!-- ======== CASE 2: parent ======== -->
+<rect x="30" y="280" width="480" height="150" class="bx" data-t="4.6,99"/>
+<text x="46" y="304" class="h" data-t="4.6,99">PostToolUse · from the parent</text>
+<text x="46" y="330" class="s" data-t="5.2,99" data-type="5.2,6.0,0.03,0">{"session_id":"sess-1", "tool_name":"Bash"…}</text>
+<text x="46" y="356" class="xs d" data-t="6.1,99">no agent_id → guard passes</text>
+<text x="46" y="382" class="s a" data-t="6.8,99">drain claims it → additionalContext emitted</text>
+<text x="46" y="410" class="s" data-t="7.6,99">receipt flips to <tspan class="a">✓✓ delivered</tspan></text>
+
+<!-- ======== guard box ======== -->
+<rect x="620" y="150" width="450" height="120" class="bs"/>
+<text x="845" y="176" text-anchor="middle" class="h">isSubagentHook()</text>
+<text x="845" y="200" text-anchor="middle" class="xs d">src/domain/identity.ts</text>
+<text x="845" y="226" text-anchor="middle" class="s" data-t="1.8,99">agent_id ≠ undefined &amp;&amp; ≠ '' → subagent</text>
+<text x="845" y="250" text-anchor="middle" class="xs f" data-t="1.8,99">honored by drain · observe · rewake</text>
+
+<!-- paths -->
+<path id="p1" d="M510,160 C570,160 570,210 620,210" class="lr"/>
+<path id="p2" d="M510,355 C570,355 570,210 620,210" class="la"/>
+<rect class="pr" width="6" height="6" data-pk="p1,1.6,2.2"/>
+<rect class="pk" width="6" height="6" data-pk="p2,5.8,6.4"/>
+
+<!-- caption -->
+<text x="550" y="445" text-anchor="middle" class="h" data-t="8.0,99"><tspan class="d">&gt;</tspan> same guard that fixed #216 — regression tests already cite it</text>
+</svg>
+</body></html>
