@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="anim-duration" content="14">
+<title>review round: alexechoi feedback across 5 PRs</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.y{fill:#d4a94e}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}.pr{fill:#a77a7a}
+.cur{fill:#e6e6e6}
+</style></head><body>
+<svg viewBox="0 0 1200 680" role="img" aria-label="Animated diagram: alexechoi's review round across five concord-mcp PRs — a shared JSONC foundation PR, three stacked adapter PRs, and a docs PR — each driven through the same fix, test, push, reply, CI and Greptile loop until mergeable.">
+<rect width="1200" height="680" fill="#000"/>
+<!-- header -->
+<text x="30" y="34"><tspan class="d">jseramn@concord-mcp:~$</tspan> review round · alexechoi · 2026-11-23</text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.4">act 1 · <tspan class="a">the stack</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="4.5,9.4">act 2 · <tspan class="a">the loop, per PR</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="9.5,99">act 3 · <tspan class="a">green &amp; answered</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- ===== ACT 1: the stack ===== -->
+<g data-t="0.4,99">
+<text x="30" y="76" class="xs d">feedback: CHANGES_REQUESTED ×3 · comments ×1 · threads 10 + 15 + 12 + docs</text>
+</g>
+
+<!-- foundation -->
+<rect x="60" y="330" width="300" height="64" class="bs" data-t="0.8,99"/>
+<text x="76" y="354" class="s a" data-t="0.8,99">PR #403 · refactor/jsonc-edit-helpers</text>
+<text x="76" y="372" class="xs d" data-t="1.1,99">propertyObject / removeProperty / uncomment</text>
+<text x="76" y="386" class="xs d" data-t="1.1,99">→ shared by devin-config, user-hooks, kilo</text>
+
+<!-- stacked PRs -->
+<rect x="60" y="240" width="300" height="64" class="bs" data-t="1.6,99"/>
+<text x="76" y="264" class="s a" data-t="1.6,99">PR #402 · feat/kilo-support</text>
+<text x="76" y="282" class="xs d" data-t="1.9,99">12 threads · TOML→JSONC ownership,</text>
+<text x="76" y="296" class="xs d" data-t="1.9,99">merge precedence, comment-safe uninstall</text>
+
+<rect x="60" y="150" width="300" height="64" class="bs" data-t="2.4,99"/>
+<text x="76" y="174" class="s a" data-t="2.4,99">PR #396 · feat/vibe-support</text>
+<text x="76" y="192" class="xs d" data-t="2.7,99">15 threads · TOML quoted keys, ownership,</text>
+<text x="76" y="206" class="xs d" data-t="2.7,99">trust global, workspace pin, chunks</text>
+
+<rect x="60" y="60" width="300" height="64" class="bs" data-t="3.2,99"/>
+<text x="76" y="84" class="s a" data-t="3.2,99">PR #365 · feat/junie-support</text>
+<text x="76" y="102" class="xs d" data-t="3.5,99">10 threads · trust guidance, lazy-load</text>
+<text x="76" y="116" class="xs d" data-t="3.5,99">merge to v0.24.0 (9 conflicts)</text>
+
+<!-- stack arrows -->
+<path id="st1" d="M210,326 V240" class="la" data-t="2.0,99"/>
+<path id="st2" d="M210,236 V150" class="la" data-t="2.8,99"/>
+<path id="st3" d="M210,146 V60" class="la" data-t="3.6,99"/>
+<circle r="3.5" class="pk" data-pk="st1,,2.0,2.6,0,0"/>
+<circle r="3.5" class="pk" data-pk="st2,,2.8,3.4,0,0"/>
+<circle r="3.5" class="pk" data-pk="st3,,3.6,4.2,0,0"/>
+
+<!-- docs PR -->
+<rect x="60" y="430" width="300" height="52" class="bx" data-t="3.9,99"/>
+<text x="76" y="452" class="s" data-t="3.9,99">PR #397 · docs/aider-support</text>
+<text x="76" y="470" class="xs y" data-t="4.1,99">MERGED · shell-only `concord work` guide</text>
+
+<!-- worktrees -->
+<text x="430" y="120" class="xs d" data-t="4.0,99">worktrees: concord-mcp-jsonc · -junie · -kilo · cwd(vibe)</text>
+<text x="430" y="140" class="xs d" data-t="4.3,99">stack local → cada PR sigue apuntando a upstream/main</text>
+<text x="430" y="160" class="xs d" data-t="4.6,99">jseramn tiene READ en upstream → stack por merges, no base remota</text>
+
+<!-- ===== ACT 2: the loop ===== -->
+<g data-t="4.8,99">
+<text x="30" y="520" class="h">the loop — repeated until green</text>
+</g>
+<rect x="60" y="540" width="150" height="56" class="bx" data-t="5.0,99"/>
+<text x="135" y="564" text-anchor="middle" class="s" data-t="5.0,99">implement</text>
+<text x="135" y="582" text-anchor="middle" class="xs d" data-t="5.2,99">fix every thread</text>
+<rect x="240" y="540" width="150" height="56" class="bx" data-t="5.4,99"/>
+<text x="315" y="564" text-anchor="middle" class="s" data-t="5.4,99">pnpm check</text>
+<text x="315" y="582" text-anchor="middle" class="xs d" data-t="5.6,99">lint · typecheck · test · build</text>
+<rect x="420" y="540" width="150" height="56" class="bx" data-t="5.8,99"/>
+<text x="495" y="564" text-anchor="middle" class="s" data-t="5.8,99">push</text>
+<text x="495" y="582" text-anchor="middle" class="xs d" data-t="6.0,99">conventional commit</text>
+<rect x="600" y="540" width="170" height="56" class="bx" data-t="6.2,99"/>
+<text x="685" y="564" text-anchor="middle" class="s" data-t="6.2,99">reply threads</text>
+<text x="685" y="582" text-anchor="middle" class="xs d" data-t="6.4,99">citing the fix commit</text>
+<rect x="800" y="540" width="170" height="56" class="bx" data-t="6.6,99"/>
+<text x="885" y="564" text-anchor="middle" class="s" data-t="6.6,99">CI + Greptile</text>
+<text x="885" y="582" text-anchor="middle" class="xs d" data-t="6.8,99">watch → fix → re-run</text>
+<rect x="1000" y="540" width="150" height="56" class="bs" data-t="7.0,99"/>
+<text x="1075" y="564" text-anchor="middle" class="s a" data-t="7.0,99">MERGEABLE</text>
+<text x="1075" y="582" text-anchor="middle" class="xs d" data-t="7.2,99">all checks green</text>
+
+<path id="loop" d="M135,540 H1075 M1075,596 C1075,640 60,640 60,596" class="la" fill="none" data-t="7.4,99"/>
+<circle r="4" class="pk" data-pk="loop,,7.4,10.4,0,0"/>
+<text x="560" y="530" text-anchor="middle" class="xs d" data-t="7.6,99">× per PR: junie · vibe · kilo · aider</text>
+
+<!-- ===== ACT 3: final state ===== -->
+<g data-t="10.6,99">
+<text x="430" y="300" class="h">final state</text>
+<rect x="430" y="318" width="740" height="30" class="ln" stroke="#3a3a3a"/>
+<text x="446" y="338" class="xs d">PR      threads answered      checks                mergeable</text>
+<text x="446" y="366" class="s" data-t="10.8,99">#403     lint fix + push       9/9 green             MERGEABLE</text>
+<text x="446" y="392" class="s" data-t="11.1,99">#365     10/10 + 2 extra         all green            MERGEABLE</text>
+<text x="446" y="418" class="s" data-t="11.4,99">#396     14/14 + summary         all green            MERGEABLE</text>
+<text x="446" y="444" class="s" data-t="11.7,99">#402     12/12 + summary         CI running           MERGEABLE</text>
+<text x="446" y="470" class="s y" data-t="12.0,99">#397     —                      merged</text>
+<text x="446" y="510" class="s a" data-t="12.6,99">evidence: assets/review-round · drawio hierarchy + this gif</text>
+</g>
+</svg></body></html>
