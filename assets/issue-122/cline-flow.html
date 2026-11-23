@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="anim-duration" content="13.0">
+<title>concord × cline — verified integration (re #122)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.lb{fill:none;stroke:#8aa0c6;stroke-width:1.2}
+.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}.pr{fill:#a77a7a}.pb{fill:#8aa0c6}
+.cur{fill:#e6e6e6}
+.bar{fill:#2a2a2a}
+</style></head><body>
+<svg viewBox="0 0 1200 560" role="img" aria-label="Animated diagram: Cline integrates with Concord through global lifecycle hooks that register a stable cline identity and deterministic workspace, deliver inbox messages into extension prompt context, and an MCP stdio server entry exposing the five workflow tools.">
+<rect width="1200" height="560" fill="#000"/>
+<text x="30" y="34"><tspan class="d">cline (cli · vscode ext · jetbrains)</tspan> · verified on cline 3.0.75</text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.2">act 1 · <tspan class="a">hooks register identity + workspace</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="4.3,8.2">act 2 · <tspan class="b">prompt-submit delivery</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="8.3,99">act 3 · <tspan class="a">MCP workflow tools</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- ============ LEFT: cline session ============ -->
+<rect x="30" y="70" width="330" height="330" class="bx"/>
+<text x="46" y="92" class="h">cline session</text>
+<text x="46" y="114" class="xs d">cli 3.0.75 · vscode ext · jetbrains</text>
+<line x1="30" y1="124" x2="360" y2="124" class="ln"/>
+<g class="s">
+<text x="46" y="146" class="xs d" data-t="0.6,4.2" data-type="0.6,1.4,0.5,0">~/.cline/data/settings/</text>
+<text x="46" y="162" class="xs d" data-t="0.6,4.2" data-type="0.7,1.5,0.5,0">  cline_mcp_settings.json → concord (stdio)</text>
+<text x="46" y="190" class="xs d" data-t="0.8,4.2" data-type="0.8,1.6,0.5,0">~/Documents/Cline/Hooks/*.ps1</text>
+<text x="46" y="206" class="xs d" data-t="0.8,4.2" data-type="0.9,1.7,0.5,0">  + ~/.cline/hooks/ (TaskStart·Resume·Prompt)</text>
+<text x="46" y="224" class="xs d" data-t="0.8,4.2" data-type="1.0,1.8,0.5,0">  → concord hook cline-&lt;event&gt; (stdin json)</text>
+<text x="46" y="256" class="xs d" data-t="4.5,8.2" data-type="4.5,5.3,0.5,0">UserPromptSubmit → contextModification</text>
+<text x="46" y="274" class="xs d" data-t="4.5,8.2" data-type="4.6,5.4,0.5,0">  extension injects it into the prompt</text>
+<text x="46" y="300" class="xs d" data-t="8.5,99" data-type="8.5,9.3,0.5,0">model calls mcp_concord.start_work …</text>
+<text x="46" y="318" class="xs d" data-t="8.5,99" data-type="8.6,9.4,0.5,0">  agent_id + workspace_id passed explicitly</text>
+<text x="46" y="348" class="xs f" data-t="2.4,4.2">identity = cline:&lt;hash(task_id)&gt;</text>
+<text x="46" y="366" class="xs f" data-t="2.4,4.2">CONCORD_REPO_ROOT ← workspace_roots[0]</text>
+<text x="46" y="392" class="xs b" data-t="6.4,8.2">verified: hook json reached the model ✓</text>
+</g>
+
+<!-- ============ MIDDLE: concord cli / inbox ============ -->
+<rect x="470" y="70" width="270" height="330" class="bs"/>
+<text x="605" y="94" text-anchor="middle" class="h">concord cli</text>
+<text x="605" y="118" text-anchor="middle" class="xs d">hooks spawn these per event</text>
+<line x1="470" y1="130" x2="740" y2="130" class="ln"/>
+<g class="s">
+<text x="486" y="156" data-t="1.4,4.2" data-type="1.4,2.1,0.5,0">hook cline-task-start</text>
+<text x="486" y="174" data-t="1.4,4.2" data-type="1.5,2.2,0.5,0">hook cline-task-resume</text>
+<text x="486" y="192" class="d" data-t="1.4,4.2" data-type="1.6,2.3,0.5,0">  → register agent + pull endpoint</text>
+<text x="486" y="222" data-t="3.2,4.2" data-type="3.2,3.9,0.5,0">hook cline-user-prompt-submit</text>
+<text x="486" y="240" class="d" data-t="3.2,4.2" data-type="3.3,4.0,0.5,0">  → drain inbox → contextModification</text>
+<text x="486" y="268" class="d" data-t="2.2,4.2" data-type="2.2,2.9,0.5,0">workspace_id = f(workspace_roots)</text>
+<text x="486" y="300" class="xs f" data-t="3.6,4.2">sdk/cli hooks detached →</text>
+<text x="486" y="316" class="xs f" data-t="3.6,4.2">endpoint refresh + pending notice</text>
+</g>
+<rect x="486" y="340" width="238" height="46" class="bx"/>
+<text x="498" y="360" class="xs d">inbox (sqlite)</text>
+<text x="498" y="378" class="s" data-t="5.9,99"><tspan class="r">1 message</tspan> waiting → drained</text>
+
+<!-- ============ RIGHT: concord-mcp ============ -->
+<rect x="830" y="70" width="340" height="200" class="bs"/>
+<text x="1000" y="94" text-anchor="middle" class="h">concord-mcp (stdio)</text>
+<text x="1000" y="118" text-anchor="middle" class="xs d">command = "concord-mcp" · CONCORD_AGENT_KIND=cline</text>
+<line x1="830" y1="130" x2="1170" y2="130" class="ln"/>
+<g class="s">
+<text x="846" y="156" data-t="9.0,99" data-type="9.0,9.7,0.04,0">start_work · inspect_work</text>
+<text x="846" y="178" data-t="9.0,99" data-type="9.8,10.5,0.04,0">update_work · transfer_work</text>
+<text x="846" y="200" data-t="9.0,99" data-type="10.6,11.3,0.04,0">finish_work — five tools, no new surface</text>
+<text x="846" y="228" class="xs f" data-t="10.0,99">mcp sees no session → agent_id +</text>
+<text x="846" y="246" class="xs f" data-t="10.0,99">workspace_id come from hook context</text>
+</g>
+
+<!-- capability boundary box -->
+<rect x="830" y="300" width="340" height="100" class="bx"/>
+<text x="846" y="324" class="s">capability boundary</text>
+<text x="846" y="348" class="s a" data-t="3.4,99">ext prompt-submit delivery: verified ✓</text>
+<text x="846" y="370" class="s r" data-t="3.4,99">idle wake-up: not claimed — no hook fires</text>
+<text x="846" y="392" class="xs d" data-t="3.4,99">manual: concord inbox drain --provider cline</text>
+
+<!-- ============ PATHS ============ -->
+<path id="pReg" d="M360,160 C420,160 420,190 470,190" class="ln"/>
+<path id="pCtx" d="M470,250 C400,250 400,300 360,300" class="la"/>
+<path id="pPrm" d="M740,225 C790,225 790,250 830,250" class="lb"/>
+<path id="pMsg" d="M605,345 C545,352 460,345 368,326" class="lr"/>
+<path id="pMcp" d="M360,270 C560,270 700,160 830,160" class="lb"/>
+
+<!-- packets -->
+<rect class="pk" width="6" height="6" data-pk="pReg,1.7,2.4"/>
+<rect class="pk" width="6" height="6" data-pk="pReg,1.7,2.4" style="transition-delay:0.3s"/>
+<rect class="pr" width="6" height="6" data-pk="pMsg,5.7,6.3"/>
+<rect class="pk" width="6" height="6" data-pk="pCtx,2.5,3.1"/>
+<rect class="pb" width="6" height="6" data-pk="pMcp,9.5,10.4"/>
+<rect class="pb" width="6" height="6" data-pk="pMcp,9.5,10.4" style="transition-delay:0.4s"/>
+<rect class="pb" width="6" height="6" data-pk="pPrm,5.0,5.6"/>
+
+<!-- caption -->
+<text x="600" y="530" text-anchor="middle" class="h" data-t="6.8,8.2"><tspan class="d">&gt;</tspan> one task_id → one cline identity · hooks carry identity, MCP carries tools</text>
+<text x="600" y="530" text-anchor="middle" class="h" data-t="11.0,99"><tspan class="d">&gt;</tspan> same adapter pattern as Kiro (#365) — global config + hooks + dual rules dirs</text>
+</svg>
+</body></html>
