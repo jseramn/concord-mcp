@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="anim-duration" content="14">
+<title>Concord inside T3 Code threads (re #230)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}.y{fill:#d6b656}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.lb{fill:none;stroke:#8aa0c6;stroke-width:1.2}
+.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.ly{fill:none;stroke:#d6b656;stroke-width:1.2}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}.pr{fill:#a77a7a}.pb{fill:#8aa0c6}.py{fill:#d6b656}
+</style></head><body>
+<svg viewBox="0 0 1200 620" role="img" aria-label="Animated diagram: T3 Code launches Claude, Codex and Grok threads in worktrees; each agent loads its own vendor config where Concord's MCP server and hooks already live; all threads resolve to one shared .concord store so agents message each other, with Claude's asyncRewake waking idle sessions.">
+<rect width="1200" height="620" fill="#000"/>
+<text x="30" y="34" class="h">concord × t3 code — no t3-specific integration needed</text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,3.4">act 1 · <tspan class="b">t3 launches vendor agents</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="3.5,7.0">act 2 · <tspan class="a">each loads its own config — concord inside</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="7.1,10.6">act 3 · <tspan class="y">all threads → one .concord store</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="10.7,99">act 4 · <tspan class="a">agents message each other</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- ======== T3 SERVER ======== -->
+<rect x="30" y="80" width="250" height="86" class="bs" data-t="0.4,99"/>
+<text x="46" y="104" class="h" data-t="0.4,99">t3 code server</text>
+<text x="46" y="128" class="s d" data-t="0.4,99">control plane · threads + worktrees</text>
+<text x="46" y="150" class="xs d" data-t="0.4,99">not an agent — launches vendor CLIs</text>
+
+<!-- ======== AGENT THREADS ======== -->
+<rect x="30" y="220" width="330" height="120" class="bx" data-t="1.0,99"/>
+<text x="46" y="244" class="h" data-t="1.0,99">thread A · claude code</text>
+<text x="46" y="266" class="s d" data-t="1.0,99">cwd: .t3/worktrees/repo/feat-x</text>
+<text x="46" y="290" class="s b" data-t="3.6,99">claude via Agent SDK (sdk-ts)</text>
+<text x="46" y="312" class="s a" data-t="4.6,99">~/.claude → concord-mcp + concord-relay</text>
+<text x="46" y="332" class="xs a" data-t="5.6,99">plugin hooks: register · drain · asyncRewake</text>
+
+<rect x="30" y="360" width="330" height="120" class="bx" data-t="1.6,99"/>
+<text x="46" y="384" class="h" data-t="1.6,99">thread B · codex</text>
+<text x="46" y="406" class="s d" data-t="1.6,99">cwd: .t3/worktrees/repo/fix-y</text>
+<text x="46" y="430" class="s b" data-t="3.9,99">codex app-server · CODEX_HOME=~/.codex</text>
+<text x="46" y="452" class="s a" data-t="4.9,99">config.toml → [mcp_servers.concord] + hooks</text>
+<text x="46" y="472" class="xs a" data-t="5.9,99">SessionStart · PostToolUse · Stop drain</text>
+
+<rect x="30" y="500" width="330" height="60" class="bx" data-t="2.2,99"/>
+<text x="46" y="524" class="h" data-t="2.2,99">thread C · grok</text>
+<text x="46" y="546" class="s d" data-t="2.2,99">cwd: project dir · ~/.grok/config.toml → concord</text>
+
+<!-- ======== spawn paths ======== -->
+<path id="pS1" d="M155,166 C155,190 195,196 195,220" class="lb"/>
+<path id="pS2" d="M155,166 C155,260 195,290 195,360" class="lb"/>
+<path id="pS3" d="M155,166 C155,420 195,510 195,500" class="lb"/>
+<rect class="pb" width="6" height="6" data-pk="pS1,1.0,1.7"/>
+<rect class="pb" width="6" height="6" data-pk="pS2,1.6,2.3"/>
+<rect class="pb" width="6" height="6" data-pk="pS3,2.2,2.9"/>
+
+<!-- ======== .CONCORD STORE ======== -->
+<rect x="880" y="180" width="290" height="250" class="bs" data-t="6.8,99"/>
+<text x="896" y="204" class="h" data-t="6.8,99">.concord/ · primary checkout</text>
+<text x="896" y="226" class="xs d" data-t="6.8,99">one store per repo — worktrees resolve here</text>
+<line x1="880" y1="238" x2="1170" y2="238" class="ln"/>
+<text x="896" y="260" class="s a" data-t="7.6,99">concord.db — tasks · claims · inboxes</text>
+<text x="896" y="284" class="s a" data-t="8.0,99">claude-code:aaa111</text>
+<text x="896" y="304" class="s a" data-t="8.2,99">codex:bbb222</text>
+<text x="896" y="324" class="s a" data-t="8.4,99">grok:ccc333</text>
+<line x1="880" y1="342" x2="1170" y2="342" class="ln"/>
+<text x="896" y="362" class="xs d" data-t="8.6,99">overlap detection across threads</text>
+<text x="896" y="382" class="xs d" data-t="8.6,99">peer messages between agents</text>
+<text x="896" y="410" class="xs y" data-t="11.0,99">msg A→B delivered (steer)</text>
+<text x="896" y="430" class="xs y" data-t="12.4,99">idle A woken via asyncRewake</text>
+
+<!-- ======== agent → store paths ======== -->
+<path id="pA" d="M360,280 C560,280 640,300 880,290" class="la" data-t="6.8,99"/>
+<path id="pB" d="M360,420 C560,420 640,360 880,330" class="la" data-t="6.8,99"/>
+<path id="pC" d="M360,530 C620,530 700,420 880,370" class="la" data-t="6.8,99"/>
+<rect class="pk" width="6" height="6" data-pk="pA,7.4,8.2"/>
+<rect class="pk" width="6" height="6" data-pk="pB,7.6,8.4"/>
+<rect class="pk" width="6" height="6" data-pk="pC,7.8,8.6"/>
+
+<!-- middle label -->
+<text x="560" y="180" text-anchor="middle" class="s y" data-t="7.0,10.6">same repo → same workspace</text>
+<text x="560" y="200" text-anchor="middle" class="xs d" data-t="7.0,10.6">gitdir + commondir → primary .concord</text>
+
+<!-- ======== message flow act 4 ======== -->
+<path id="pMsg1" d="M360,270 C500,270 600,275 700,282 C760,286 800,288 880,290" class="la"/>
+<path id="pMsg2" d="M880,300 C800,310 700,330 560,380 C480,405 400,415 360,420" class="lb"/>
+<rect class="pw" width="7" height="7" data-pk="pMsg1,10.8,11.8"/>
+<rect class="pb" width="7" height="7" data-pk="pMsg2,11.9,12.9"/>
+<text x="560" y="250" text-anchor="middle" class="s a" data-t="10.9,99">claude asks codex to review overlap</text>
+<text x="560" y="268" text-anchor="middle" class="s b" data-t="12.0,99">codex replies via Stop-hook drain</text>
+
+<!-- ======== delivery legend ======== -->
+<text x="30" y="588" class="xs d" data-t="10.7,99">delivery: busy = hooks/pull · claude idle = asyncRewake (sdk-ts) · codex idle = next turn</text>
+<text x="30" y="604" class="xs d" data-t="10.7,99">untracked files (.mcp.json, .claude hooks) absent in fresh worktrees → prefer concord setup --global</text>
+
+<!-- caption -->
+<text x="600" y="614" text-anchor="middle" class="h" data-t="12.8,99"><tspan class="d">&gt;</tspan> docs/t3-code.md — coverage per provider, caveats, check-it</text>
+</svg>
+</body></html>
