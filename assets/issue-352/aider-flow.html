@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="anim-duration" content="13.0">
+<title>concord × aider — concord work shell path (re #352)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.lb{fill:none;stroke:#8aa0c6;stroke-width:1.2}
+.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}.pr{fill:#a77a7a}.pb{fill:#8aa0c6}
+</style></head><body>
+<svg viewBox="0 0 1200 560" role="img" aria-label="Animated diagram: Aider has no MCP client, so Concord reaches it through the concord work CLI, which runs the same five workflow tools in-process over an in-memory MCP transport. Identity is operator-named, delivery is pull-only via inbox drain.">
+<rect width="1200" height="560" fill="#000"/>
+<text x="30" y="34"><tspan class="d">aider --model …  (no MCP client, no hooks — aider#5539 open)</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.0">act 1 · <tspan class="a">name the agent</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="4.1,8.4">act 2 · <tspan class="b">concord work = the 5 tools</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="8.5,99">act 3 · <tspan class="a">pull-only inbox</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- ============ LEFT: aider session ============ -->
+<rect x="30" y="70" width="330" height="330" class="bx"/>
+<text x="46" y="92" class="h">aider session</text>
+<text x="46" y="114" class="xs d">model proposes · you approve · it runs</text>
+<line x1="30" y1="124" x2="360" y2="124" class="ln"/>
+<g class="s">
+<text x="46" y="150" data-t="1.0,99" data-type="1.0,1.8,0.05,0">export CONCORD_AGENT_ID=aider:fix-login</text>
+<text x="46" y="172" class="d" data-t="1.0,99" data-type="1.9,2.7,0.05,0">export CONCORD_AGENT_KIND=aider</text>
+<text x="46" y="204" data-t="4.4,99" data-type="4.4,5.2,0.05,0">concord work start --task T-1 --title "…"</text>
+<text x="46" y="226" class="d" data-t="4.4,99" data-type="5.3,6.1,0.05,0">concord work update --type progress …</text>
+<text x="46" y="258" data-t="8.8,99" data-type="8.8,9.6,0.05,0">concord inbox drain --provider aider</text>
+<text x="46" y="280" class="d" data-t="8.8,99" data-type="9.7,10.5,0.05,0">  → one JSON line per message</text>
+<text x="46" y="312" data-t="10.8,99" data-type="10.8,11.6,0.05,0">concord work finish --outcome review_ready</text>
+<text x="46" y="344" class="xs f" data-t="2.8,4.0">no hooks → nothing is pushed</text>
+<text x="46" y="362" class="xs f" data-t="2.8,4.0">messages wait in the durable inbox</text>
+<text x="46" y="390" class="xs b" data-t="7.0,8.4">same 5 tools, same validation, same store</text>
+</g>
+
+<!-- ============ MIDDLE: concord work cli ============ -->
+<rect x="470" y="70" width="270" height="330" class="bs"/>
+<text x="605" y="94" text-anchor="middle" class="h">concord work</text>
+<text x="605" y="118" text-anchor="middle" class="xs d">in-process MCP client · --json file|-</text>
+<line x1="470" y1="130" x2="740" y2="130" class="ln"/>
+<g class="s">
+<text x="486" y="158" data-t="2.0,4.0">start · inspect · update</text>
+<text x="486" y="180" data-t="2.0,4.0">transfer · finish</text>
+<text x="486" y="212" class="d" data-t="5.0,8.4">prints the tool's structured JSON</text>
+<text x="486" y="234" class="d" data-t="5.0,8.4">{"error": …} + exit 1 on failure</text>
+<text x="486" y="266" class="d" data-t="8.5,99">expected_version guards stale writes</text>
+<text x="486" y="288" class="d" data-t="8.5,99">idempotency_key makes retries safe</text>
+</g>
+<rect x="486" y="316" width="238" height="66" class="bx"/>
+<text x="498" y="338" class="xs d">inbox (sqlite)</text>
+<text x="498" y="358" class="s" data-t="9.2,99"><tspan class="r">1 message</tspan> queued → drained</text>
+<text x="498" y="376" class="xs a" data-t="9.8,99">✓✓ delivered receipt</text>
+
+<!-- ============ RIGHT: concord-mcp ============ -->
+<rect x="830" y="70" width="340" height="200" class="bs"/>
+<text x="1000" y="94" text-anchor="middle" class="h">concord-mcp (in-process)</text>
+<text x="1000" y="118" text-anchor="middle" class="xs d">createServer + InMemoryTransport</text>
+<line x1="830" y1="130" x2="1170" y2="130" class="ln"/>
+<g class="s">
+<text x="846" y="156" data-t="4.8,99" data-type="4.8,5.5,0.04,0">start_work · inspect_work</text>
+<text x="846" y="178" data-t="4.8,99" data-type="5.6,6.3,0.04,0">update_work · transfer_work</text>
+<text x="846" y="200" data-t="4.8,99" data-type="6.4,7.1,0.04,0">finish_work — identical to MCP calls</text>
+<text x="846" y="228" class="xs f" data-t="5.8,99">same Zod validation · same overlaps</text>
+<text x="846" y="248" class="xs f" data-t="5.8,99">same .concord artifacts · same store</text>
+</g>
+
+<!-- capability boundary box -->
+<rect x="830" y="300" width="340" height="100" class="bx"/>
+<text x="846" y="324" class="s">capability boundary — stated, not implied</text>
+<text x="846" y="348" class="s a" data-t="3.2,99">all 5 tools work: verified live ✓</text>
+<text x="846" y="370" class="s r" data-t="3.2,99">pull-only: drain is the only delivery</text>
+<text x="846" y="392" class="xs d" data-t="3.2,99">delivered ≠ read · identity is manual · per-repo</text>
+
+<!-- ============ PATHS ============ -->
+<path id="pEnv" d="M360,160 C420,160 420,190 470,190" class="ln"/>
+<path id="pWork" d="M740,225 C790,225 790,270 830,270" class="ln"/>
+<path id="pDrain" d="M470,250 C400,250 400,300 360,300" class="la"/>
+<path id="pMsg" d="M605,316 C605,350 500,350 486,350" class="lr"/>
+
+<!-- packets -->
+<rect class="pk" width="6" height="6" data-pk="pEnv,1.9,2.6"/>
+<rect class="pb" width="6" height="6" data-pk="pWork,5.0,6.2"/>
+<rect class="pb" width="6" height="6" data-pk="pWork,5.0,6.2" style="transition-delay:0.3s"/>
+<rect class="pr" width="6" height="6" data-pk="pMsg,9.4,10.0"/>
+<rect class="pk" width="6" height="6" data-pk="pDrain,10.2,10.9"/>
+
+<!-- caption -->
+<text x="600" y="530" text-anchor="middle" class="h" data-t="7.2,8.4"><tspan class="d">&gt;</tspan> no adapter to write — the shell IS the integration</text>
+<text x="600" y="530" text-anchor="middle" class="h" data-t="11.0,99"><tspan class="d">&gt;</tspan> docs/aider.md · PR #397 · issue #352</text>
+</svg>
+<script>
+// Deterministic animator: playwright sets window.__SCRUB + window.__T per frame.
+(function () {
+  var svg = document.querySelector('svg');
+  var timed = Array.prototype.slice.call(svg.querySelectorAll('[data-t]'));
+  var typed = Array.prototype.slice.call(svg.querySelectorAll('[data-type]'));
+  var pkts = Array.prototype.slice.call(svg.querySelectorAll('[data-pk]'));
+  var paths = {};
+  function pathById(id) { if (!paths[id]) paths[id] = svg.querySelector('#' + id); return paths[id]; }
+  function apply(t) {
+    timed.forEach(function (el) {
+      var w = el.getAttribute('data-t').split(',');
+      el.style.display = (t >= parseFloat(w[0]) && t < parseFloat(w[1])) ? '' : 'none';
+    });
+    typed.forEach(function (el) {
+      var w = el.getAttribute('data-type').split(',');
+      var a = parseFloat(w[0]), b = parseFloat(w[1]);
+      var txt = el.getAttribute('data-full') || el.textContent;
+      if (!el.getAttribute('data-full')) el.setAttribute('data-full', txt);
+      var p = Math.max(0, Math.min(1, (t - a) / Math.max(0.001, b - a)));
+      var n = Math.round(txt.length * p);
+      el.textContent = txt.slice(0, n);
+    });
+    pkts.forEach(function (el) {
+      var w = el.getAttribute('data-pk').split(',');
+      var a = parseFloat(w[1]), b = parseFloat(w[2]);
+      var path = pathById(w[0]);
+      if (!path) return;
+      var len = path.getTotalLength();
+      var p = Math.max(0, Math.min(1, (t - a) / Math.max(0.001, b - a)));
+      var pt = path.getPointAtLength(len * p);
+      el.setAttribute('x', pt.x - 3);
+      el.setAttribute('y', pt.y - 3);
+      el.style.display = (t >= a - 0.05 && t <= b + 0.05) ? '' : 'none';
+    });
+  }
+  window.__apply = apply;
+  window.__SCRUB = false;
+  var t0 = performance.now();
+  (function loop() {
+    if (!window.__SCRUB) apply((performance.now() - t0) / 1000 % 13);
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body></html>
