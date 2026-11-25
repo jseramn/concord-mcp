@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="anim-duration" content="9.0">
+<title>concord #417 — doctor survives an empty PATH</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}.y{fill:#c6b98a}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+</style></head><body>
+<svg viewBox="0 0 1200 460" role="img" aria-label="Animated diagram: concord doctor used to throw when PATH was empty or unset; regression tests now prove it reports harnesses as undetected instead of crashing.">
+<rect width="1200" height="460" fill="#000"/>
+<text x="30" y="34"><tspan class="d">concord doctor · detection with an empty or missing PATH</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.2">act 1 · <tspan class="r">the crash</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="4.3,99">act 2 · <tspan class="a">the contract, tested</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<rect x="30" y="70" width="540" height="320" class="bx"/>
+<text x="46" y="92" class="h">a stripped environment</text>
+<line x1="30" y1="104" x2="570" y2="104" class="ln"/>
+<g class="s">
+<text x="46" y="132" data-t="0.6,99" data-type="0.6,1.4,0.05,0">env -i concord doctor</text>
+<text x="46" y="164" class="d" data-t="1.6,99">PATH= (empty — nothing to find)</text>
+<text x="46" y="200" class="r" data-t="2.2,4.2">before: executable lookup threw —</text>
+<text x="46" y="218" class="r" data-t="2.2,4.2">doctor died before reporting anything</text>
+<text x="46" y="252" class="a" data-t="4.6,99">after: every harness reports not-detected,</text>
+<text x="46" y="270" class="a" data-t="4.6,99">the report still renders end to end</text>
+<text x="46" y="304" class="d" data-t="5.2,99">same for PATH missing entirely — undefined,</text>
+<text x="46" y="322" class="d" data-t="5.2,99">not just the empty string</text>
+</g>
+
+<rect x="620" y="70" width="550" height="320" class="bs"/>
+<text x="636" y="92" class="h">the regression suite</text>
+<line x1="620" y1="104" x2="1170" y2="104" class="ln"/>
+<g class="s">
+<text x="636" y="132" class="b" data-t="4.6,99" data-type="4.6,5.4,0.05,0">doctor with empty PATH reports, never throws</text>
+<text x="636" y="166" class="a" data-t="5.8,99">✓ PATH='' — all probes resolve not-detected</text>
+<text x="636" y="188" class="a" data-t="6.4,99">✓ PATH absent — same outcome</text>
+<text x="636" y="210" class="a" data-t="7.0,99">✓ detection falls back to config evidence</text>
+<text x="636" y="244" class="d" data-t="7.6,99">split out of #396's branch so the Vibe PR</text>
+<text x="636" y="262" class="d" data-t="7.6,99">stays one logical concern per review</text>
+<text x="636" y="300" class="y" data-t="8.2,99">doctor is the first thing a broken setup runs —</text>
+<text x="636" y="318" class="y" data-t="8.2,99">it cannot be the thing that crashes</text>
+</g>
+
+<text x="600" y="430" text-anchor="middle" class="xs f">concord-mcp #417 — test(doctor): cover detection with empty and missing PATH</text>
+</svg>
+<script>
+(function () {
+  var svg = document.querySelector('svg');
+  var timed = Array.prototype.slice.call(svg.querySelectorAll('[data-t]'));
+  var typed = Array.prototype.slice.call(svg.querySelectorAll('[data-type]'));
+  function apply(t) {
+    timed.forEach(function (el) {
+      var w = el.getAttribute('data-t').split(',');
+      el.style.display = (t >= parseFloat(w[0]) && t < parseFloat(w[1])) ? '' : 'none';
+    });
+    typed.forEach(function (el) {
+      var w = el.getAttribute('data-type').split(',');
+      var a = parseFloat(w[0]), b = parseFloat(w[1]);
+      var txt = el.getAttribute('data-full') || el.textContent;
+      if (!el.getAttribute('data-full')) el.setAttribute('data-full', txt);
+      var p = Math.max(0, Math.min(1, (t - a) / Math.max(0.001, b - a)));
+      var n = Math.round(txt.length * p);
+      el.textContent = txt.slice(0, n);
+    });
+  }
+  window.__apply = apply;
+  window.__SCRUB = false;
+  var t0 = performance.now();
+  (function loop() {
+    if (!window.__SCRUB) apply((performance.now() - t0) / 1000 % 9);
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body></html>

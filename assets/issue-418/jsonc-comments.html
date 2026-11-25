@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="anim-duration" content="10.0">
+<title>concord #418 — JSONC comment preservation</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}.y{fill:#c6b98a}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+</style></head><body>
+<svg viewBox="0 0 1200 480" role="img" aria-label="Animated diagram: removing the last property of a JSONC object used to drop the comment leading it; now the comment survives, and emoji in comments survive install and uninstall end to end.">
+<rect width="1200" height="480" fill="#000"/>
+<text x="30" y="34"><tspan class="d">devin user hooks · jsonc comment preservation (follow-ups of #403)</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.5">act 1 · <tspan class="r">the orphan-comment bug</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="4.6,7.9">act 2 · <tspan class="a">the fix</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="8.0,99">act 3 · <tspan class="b">emoji end to end</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- BEFORE -->
+<rect x="30" y="70" width="350" height="330" class="bx"/>
+<text x="46" y="92" class="h">before</text>
+<line x1="30" y1="104" x2="380" y2="104" class="ln"/>
+<g class="s">
+<text x="46" y="130" class="d">{</text>
+<text x="46" y="152" class="d" data-t="0,99">  "a": 1,</text>
+<text x="46" y="174" class="y" data-t="0,4.5">  // section note</text>
+<text x="46" y="196" class="d" data-t="0,4.5">  "b": 2</text>
+<text x="46" y="218" class="d">}</text>
+<text x="46" y="252" class="f" data-t="0.8,4.5">removeProperty(…, "b")</text>
+<text x="46" y="286" class="r" data-t="1.6,4.5">↓ the comma-to-key span goes with it</text>
+<text x="46" y="320" class="r" data-t="2.4,4.5">// section note — gone</text>
+<text x="46" y="344" class="f" data-t="2.4,4.5">a section header for what follows,</text>
+<text x="46" y="362" class="f" data-t="2.4,4.5">deleted with the wrong property</text>
+</g>
+
+<!-- FIX -->
+<rect x="420" y="70" width="350" height="330" class="bs"/>
+<text x="436" y="92" class="h">after #418</text>
+<line x1="420" y1="104" x2="770" y2="104" class="ln"/>
+<g class="s">
+<text x="436" y="130" class="d">{</text>
+<text x="436" y="152" class="d" data-t="4.6,99">  "a": 1,</text>
+<text x="436" y="174" class="a" data-t="4.6,99">  // section note</text>
+<text x="436" y="196" class="f" data-t="4.6,99">  "b" — removed</text>
+<text x="436" y="218" class="d">}</text>
+<text x="436" y="252" class="a" data-t="5.2,7.9">compare-and-keep: comments in the</text>
+<text x="436" y="270" class="a" data-t="5.2,7.9">comma→key lead are not the value</text>
+<text x="436" y="304" class="b" data-t="6.0,7.9">rename + hard-link restore — atomic,</text>
+<text x="436" y="322" class="b" data-t="6.0,7.9">no window for a newer claim to be lost</text>
+</g>
+
+<!-- EMOJI -->
+<rect x="810" y="70" width="360" height="330" class="bx"/>
+<text x="826" y="92" class="h">emoji end to end</text>
+<line x1="810" y1="104" x2="1170" y2="104" class="ln"/>
+<g class="s">
+<text x="826" y="130" class="y" data-t="8.0,99">// user note 😀🚀</text>
+<text x="826" y="152" class="d" data-t="8.0,99">"theme_mode": "dark"</text>
+<text x="826" y="186" class="a" data-t="8.4,99" data-type="8.4,9.0,0.05,0">install → uninstall → comment intact</text>
+<text x="826" y="220" class="b" data-t="9.2,99">uncomment() blanks comments by length,</text>
+<text x="826" y="238" class="b" data-t="9.2,99">surrogate pairs and all — the JSONC</text>
+<text x="826" y="256" class="b" data-t="9.2,99">never splits mid-pair into invalid JSON</text>
+<text x="826" y="292" class="d" data-t="9.4,99">6/6 devin-user-hooks · 13/13 jsonc-edit</text>
+</g>
+
+<text x="600" y="446" text-anchor="middle" class="xs f">concord-mcp #418 — fix(install): keep leading comments in JSONC removal, test Devin writers</text>
+</svg>
+<script>
+(function () {
+  var svg = document.querySelector('svg');
+  var timed = Array.prototype.slice.call(svg.querySelectorAll('[data-t]'));
+  var typed = Array.prototype.slice.call(svg.querySelectorAll('[data-type]'));
+  function apply(t) {
+    timed.forEach(function (el) {
+      var w = el.getAttribute('data-t').split(',');
+      el.style.display = (t >= parseFloat(w[0]) && t < parseFloat(w[1])) ? '' : 'none';
+    });
+    typed.forEach(function (el) {
+      var w = el.getAttribute('data-type').split(',');
+      var a = parseFloat(w[0]), b = parseFloat(w[1]);
+      var txt = el.getAttribute('data-full') || el.textContent;
+      if (!el.getAttribute('data-full')) el.setAttribute('data-full', txt);
+      var p = Math.max(0, Math.min(1, (t - a) / Math.max(0.001, b - a)));
+      var n = Math.round(txt.length * p);
+      el.textContent = txt.slice(0, n);
+    });
+  }
+  window.__apply = apply;
+  window.__SCRUB = false;
+  var t0 = performance.now();
+  (function loop() {
+    if (!window.__SCRUB) apply((performance.now() - t0) / 1000 % 10);
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body></html>

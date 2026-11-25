@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="anim-duration" content="9.0">
+<title>concord #412 — mcp config preserves user fields</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}.y{fill:#c6b98a}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+</style></head><body>
+<svg viewBox="0 0 1200 460" role="img" aria-label="Animated diagram: rewriting an mcp config entry used to drop fields the user had set on it; the update now preserves them.">
+<rect width="1200" height="460" fill="#000"/>
+<text x="30" y="34"><tspan class="d">mcp config writers · preserving fields that are not ours</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.2">act 1 · <tspan class="r">before: rewrite dropped user fields</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="4.3,99">act 2 · <tspan class="a">after: merged, never clobbered</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<rect x="30" y="70" width="540" height="320" class="bx"/>
+<text x="46" y="92" class="h">a user's own tuning</text>
+<line x1="30" y1="104" x2="570" y2="104" class="ln"/>
+<g class="s">
+<text x="46" y="132" class="d">"concord": {</text>
+<text x="46" y="154" class="d">  "command": "concord-mcp",</text>
+<text x="46" y="176" class="y" data-t="0.8,99">  "timeout": 30,</text>
+<text x="46" y="198" class="y" data-t="0.8,99">  "env": { "LOG_LEVEL": "debug" }</text>
+<text x="46" y="220" class="d">}</text>
+<text x="46" y="256" class="r" data-t="2.2,4.2">before: the next install rewrite</text>
+<text x="46" y="274" class="r" data-t="2.2,4.2">kept only what Concord knew —</text>
+<text x="46" y="292" class="r" data-t="2.2,4.2">timeout and env silently gone</text>
+<text x="46" y="330" class="a" data-t="4.6,99">after: fields Concord did not write</text>
+<text x="46" y="348" class="a" data-t="4.6,99">survive every install and update</text>
+</g>
+
+<rect x="620" y="70" width="550" height="320" class="bs"/>
+<text x="636" y="92" class="h">the merge discipline</text>
+<line x1="620" y1="104" x2="1170" y2="104" class="ln"/>
+<g class="s">
+<text x="636" y="132" class="b" data-t="4.6,99" data-type="4.6,5.6,0.05,0">upsert keeps unknown fields of the entry it owns</text>
+<text x="636" y="166" class="a" data-t="6.0,99">✓ user env vars merge with Concord's own</text>
+<text x="636" y="188" class="a" data-t="6.6,99">✓ harness-specific extras (timeout, disabled) intact</text>
+<text x="636" y="210" class="a" data-t="7.2,99">✓ uninstall still removes only what Concord wrote</text>
+<text x="636" y="246" class="d" data-t="7.8,99">ownership has a shape: command, runner args,</text>
+<text x="636" y="264" class="d" data-t="7.8,99">managed env keys — anything else is the user's</text>
+</g>
+
+<text x="600" y="430" text-anchor="middle" class="xs f">concord-mcp #412 — fix(install): preserve user fields in mcp config entries</text>
+</svg>
+<script>
+(function () {
+  var svg = document.querySelector('svg');
+  var timed = Array.prototype.slice.call(svg.querySelectorAll('[data-t]'));
+  var typed = Array.prototype.slice.call(svg.querySelectorAll('[data-type]'));
+  function apply(t) {
+    timed.forEach(function (el) {
+      var w = el.getAttribute('data-t').split(',');
+      el.style.display = (t >= parseFloat(w[0]) && t < parseFloat(w[1])) ? '' : 'none';
+    });
+    typed.forEach(function (el) {
+      var w = el.getAttribute('data-type').split(',');
+      var a = parseFloat(w[0]), b = parseFloat(w[1]);
+      var txt = el.getAttribute('data-full') || el.textContent;
+      if (!el.getAttribute('data-full')) el.setAttribute('data-full', txt);
+      var p = Math.max(0, Math.min(1, (t - a) / Math.max(0.001, b - a)));
+      var n = Math.round(txt.length * p);
+      el.textContent = txt.slice(0, n);
+    });
+  }
+  window.__apply = apply;
+  window.__SCRUB = false;
+  var t0 = performance.now();
+  (function loop() {
+    if (!window.__SCRUB) apply((performance.now() - t0) / 1000 % 9);
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body></html>

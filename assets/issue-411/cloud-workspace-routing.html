@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="anim-duration" content="9.0">
+<title>concord #411 — cloud workspace routing</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}.b{fill:#8aa0c6}.y{fill:#c6b98a}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}
+.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}
+.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}
+.pk{fill:#9fb4a6}
+</style></head><body>
+<svg viewBox="0 0 1200 460" role="img" aria-label="Animated diagram: the cloud MCP proxy used to forward every tool call to the project of its own startup directory; now a workspace_id in the call routes it to the checkout that id names.">
+<rect width="1200" height="460" fill="#000"/>
+<text x="30" y="34"><tspan class="d">cloud proxy · routing tool calls by workspace_id</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.2">act 1 · <tspan class="r">before: startup dir decides</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="4.3,99">act 2 · <tspan class="a">after: workspace_id routes</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<rect x="30" y="70" width="260" height="180" class="bx"/>
+<text x="46" y="92" class="h">harness session</text>
+<text x="46" y="120" class="s d" data-t="0.6,99">repo-B workspace</text>
+<text x="46" y="150" class="s" data-t="1.2,99" data-type="1.2,2.2,0.05,0">inspect_work(workspace_id: ws-A)</text>
+<text x="46" y="172" class="xs f" data-t="2.4,99">the server process started in repo-A</text>
+
+<rect x="430" y="70" width="260" height="180" class="bs"/>
+<text x="560" y="92" text-anchor="middle" class="h">cloud proxy</text>
+<text x="446" y="120" class="xs r" data-t="2.6,4.2">before: startup project only ✗</text>
+<text x="446" y="150" class="xs a" data-t="4.6,99">after: decode workspace_id,</text>
+<text x="446" y="168" class="xs a" data-t="4.6,99">connect that checkout's project</text>
+<text x="446" y="200" class="xs d" data-t="5.4,99">no id → startup project, as before</text>
+
+<rect x="830" y="70" width="340" height="180" class="bx"/>
+<text x="846" y="92" class="h">concord cloud</text>
+<text x="846" y="120" class="s d" data-t="3.0,99">project ws-A (repo-A)</text>
+<text x="846" y="142" class="s d" data-t="3.0,99">project ws-B (repo-B)</text>
+<text x="846" y="176" class="s a" data-t="5.8,99">calls land where the hook registered —</text>
+<text x="846" y="194" class="s a" data-t="5.8,99">not where the process happened to start</text>
+
+<path id="route1" d="M 290 135 L 430 135" class="la"/>
+<path id="route2" d="M 690 135 L 830 122" class="la"/>
+<rect width="6" height="6" class="pk" data-pk="route1,1.4,2.4"/>
+<rect width="6" height="6" class="pk" data-pk="route2,4.8,5.8"/>
+
+<rect x="30" y="290" width="1140" height="120" class="bx"/>
+<text x="46" y="314" class="h">why it matters</text>
+<g class="s">
+<text x="46" y="344" class="d" data-t="6.4,99">extensions (Cline, others with no MCP roots) can start the MCP server outside the repository —</text>
+<text x="46" y="366" class="d" data-t="6.4,99">the hook payload knows the real workspace, so the session-start context tells the agent which id to pass</text>
+<text x="46" y="396" class="a" data-t="7.4,99">reads and writes now land in the project the hook registered — workspace routing the cloud side understands</text>
+</g>
+
+<text x="600" y="446" text-anchor="middle" class="xs f">concord-mcp #411 — feat(cloud): route proxy tool calls by workspace_id</text>
+</svg>
+<script>
+(function () {
+  var svg = document.querySelector('svg');
+  var timed = Array.prototype.slice.call(svg.querySelectorAll('[data-t]'));
+  var typed = Array.prototype.slice.call(svg.querySelectorAll('[data-type]'));
+  var pkts = Array.prototype.slice.call(svg.querySelectorAll('[data-pk]'));
+  function apply(t) {
+    timed.forEach(function (el) {
+      var w = el.getAttribute('data-t').split(',');
+      el.style.display = (t >= parseFloat(w[0]) && t < parseFloat(w[1])) ? '' : 'none';
+    });
+    typed.forEach(function (el) {
+      var w = el.getAttribute('data-type').split(',');
+      var a = parseFloat(w[0]), b = parseFloat(w[1]);
+      var txt = el.getAttribute('data-full') || el.textContent;
+      if (!el.getAttribute('data-full')) el.setAttribute('data-full', txt);
+      var p = Math.max(0, Math.min(1, (t - a) / Math.max(0.001, b - a)));
+      var n = Math.round(txt.length * p);
+      el.textContent = txt.slice(0, n);
+    });
+    pkts.forEach(function (el) {
+      var w = el.getAttribute('data-pk').split(',');
+      var a = parseFloat(w[1]), b = parseFloat(w[2]);
+      var path = svg.querySelector('#' + w[0]);
+      if (!path) return;
+      var len = path.getTotalLength();
+      var p = Math.max(0, Math.min(1, (t - a) / Math.max(0.001, b - a)));
+      var pt = path.getPointAtLength(len * p);
+      el.setAttribute('x', pt.x - 3);
+      el.setAttribute('y', pt.y - 3);
+      el.style.display = (t >= a - 0.05 && t <= b + 0.05) ? '' : 'none';
+    });
+  }
+  window.__apply = apply;
+  window.__SCRUB = false;
+  var t0 = performance.now();
+  (function loop() {
+    if (!window.__SCRUB) apply((performance.now() - t0) / 1000 % 9);
+    requestAnimationFrame(loop);
+  })();
+})();
+</script>
+</body></html>
