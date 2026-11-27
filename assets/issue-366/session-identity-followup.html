@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>fix: session identity across clients and workspaces (re #366)</title>
+<style>
+html,body{margin:0;background:#000;height:100%}
+body{display:flex;align-items:center;justify-content:center}
+svg{width:100vw;max-width:1200px;height:auto;display:block}
+text{font-family:ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;font-size:13px;fill:#e6e6e6;white-space:pre}
+.s{font-size:11.5px}.xs{font-size:10.5px}.h{font-size:15px}
+.d{fill:#8a8a8a}.f{fill:#4a4a4a}.a{fill:#9fb4a6}.r{fill:#a77a7a}
+.bx{fill:none;stroke:#3a3a3a;stroke-dasharray:3 3}.bs{fill:none;stroke:#5a5a5a}
+.ln{fill:none;stroke:#3a3a3a}.la{fill:none;stroke:#9fb4a6;stroke-width:1.2}.lr{fill:none;stroke:#a77a7a;stroke-dasharray:4 4}
+.pk{fill:#9fb4a6}.pw{fill:#e6e6e6}.cur{fill:#e6e6e6}
+</style></head><body>
+<svg viewBox="0 0 1200 520" role="img" aria-label="Animated diagram: Copilot CLI and Antigravity session-start hooks now record the client binding; once workspace A proves the live session, the MCP server keeps that process-wide identity when a later call selects workspace B whose store has no binding, while newer hook bindings still replace it.">
+<rect width="1200" height="520" fill="#000"/>
+<text x="30" y="34"><tspan class="d">building@jseramn:~$</tspan> cat pr366.followup</text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="0,4.9">act 1 · <tspan class="a">every env-backed client binds</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="5,9.9">act 2 · <tspan class="a">workspace A proves live identity</tspan></text>
+<text x="1170" y="34" text-anchor="end" class="d" data-t="10,99">act 3 · <tspan class="a">workspace B cannot resurrect the old agent</tspan></text>
+<line x1="30" y1="48" x2="1170" y2="48" class="ln" stroke-dasharray="2 4"/>
+
+<!-- clients -->
+<rect x="30" y="72" width="330" height="132" class="bx"/>
+<text x="46" y="92" class="xs d">session-start hooks · client pid 4812</text>
+<line x1="30" y1="100" x2="360" y2="100" class="ln"/>
+<g class="s">
+<text x="46" y="122">copilot-cli · session start</text>
+<text x="46" y="144">antigravity · session start</text>
+<text x="46" y="170" class="r" data-t="0,1.2">before: no SessionStart observation → no binding</text>
+<text x="46" y="170" class="a" data-t="1.3,99">now: recordClientBinding(pid, live agent, kind)</text>
+<text x="46" y="188" class="d" data-t="1.8,99">same wrapper+client window as claude-code</text>
+</g>
+
+<!-- binding rows -->
+<rect x="450" y="72" width="320" height="128" class="bx"/>
+<text x="466" y="92" class="xs d">workspace A · .concord/session_bindings</text>
+<line x1="450" y1="100" x2="770" y2="100" class="ln"/>
+<g class="s">
+<text x="466" y="124" data-t="2.0,99">pid 4812 → <tspan class="a">copilot-cli:aaaa1111</tspan></text>
+<text x="466" y="146" data-t="2.4,99">pid 5220 → <tspan class="a">antigravity:bbbb2222</tspan></text>
+<text x="466" y="172" class="xs d" data-t="2.8,99">written after the server started · same kind</text>
+<text x="466" y="190" class="xs d" data-t="3.1,99">agent row exists in this store</text>
+</g>
+<path id="pHook" d="M360,154 H450" class="la" data-t="1.5,99"/>
+
+<!-- server -->
+<rect x="860" y="72" width="310" height="132" class="bs"/>
+<text x="1015" y="94" text-anchor="middle" class="h">concord-mcp server</text>
+<text x="1015" y="116" text-anchor="middle" class="xs d">spawn-time env · copilot-cli:old9999</text>
+<text x="1015" y="140" text-anchor="middle" class="s" data-t="5.2,99">request in workspace A → probe client pid</text>
+<text x="1015" y="162" text-anchor="middle" class="s a" data-t="6.1,99">fresh binding + agent row → live session</text>
+<text x="1015" y="184" text-anchor="middle" class="xs d" data-t="6.8,99">identity_drift advisory is owed once</text>
+<path id="pReq" d="M770,134 C820,134 820,140 860,140" class="la" data-t="5.2,99"/>
+
+<!-- process cache -->
+<rect x="860" y="252" width="310" height="86" class="bx"/>
+<text x="1015" y="276" text-anchor="middle" class="s">server process cache</text>
+<text x="1015" y="300" text-anchor="middle" class="a" data-t="7.2,99">established: copilot-cli:aaaa1111</text>
+<text x="1015" y="322" text-anchor="middle" class="xs d" data-t="7.8,99">newer hook rows still replace it</text>
+<path id="pCache" d="M1015,204 V252" class="la" data-t="6.9,99"/>
+
+<!-- workspace B -->
+<rect x="450" y="278" width="320" height="136" class="bx"/>
+<text x="466" y="298" class="xs d">workspace B · separate local store</text>
+<line x1="450" y1="306" x2="770" y2="306" class="ln"/>
+<g class="s">
+<text x="466" y="330" data-t="9.0,99">session_bindings: <tspan class="r">no row for pid 4812</tspan></text>
+<text x="466" y="352" data-t="10.4,99">call start_work workspace_id=B</text>
+<text x="466" y="374" class="r" data-t="10.7,11.8">fallback would write as copilot-cli:old9999</text>
+<text x="466" y="374" class="a" data-t="11.9,99">cache supplies copilot-cli:aaaa1111</text>
+<text x="466" y="396" class="a" data-t="12.5,99">task.owner = live session</text>
+</g>
+<path id="pB" d="M860,304 C820,304 810,344 770,344" class="la" data-t="10.2,99"/>
+<path id="pBad" d="M770,344 C820,344 820,120 860,120" class="lr" data-t="10.6,11.8"/>
+
+<!-- guards -->
+<g data-t="12.8,99">
+<rect x="30" y="252" width="330" height="162" class="bx"/>
+<text x="46" y="276" class="xs d">guards that still hold</text>
+<line x1="30" y1="284" x2="360" y2="284" class="ln"/>
+<text x="46" y="310" class="s">kind mismatch → keep env identity</text>
+<text x="46" y="336" class="s">operator id → always authoritative</text>
+<text x="46" y="362" class="s">no env identity → unproven path</text>
+<text x="46" y="388" class="s">stale pre-spawn row → not trusted</text>
+</g>
+
+<!-- packets -->
+<rect class="pk" width="6" height="6" data-pk="pHook,,1.6,4.8,1.3,0"/>
+<rect class="pk" width="6" height="6" data-pk="pReq,,5.2,9.8,1.4,0"/>
+<rect class="pk" width="6" height="6" data-pk="pCache,,6.9,9.8,1.2,0.3"/>
+<rect class="pk" width="6" height="6" data-pk="pB,,10.2,99,1.5,0"/>
+<rect class="pw" width="5" height="5" data-pk="pBad,,10.6,11.8,1.2,0.2"/>
+
+<!-- captions -->
+<g text-anchor="middle">
+<text x="600" y="452" class="h" data-t="2.8,4.9"><tspan class="d">&gt;</tspan> copilot and antigravity starts now write the binding their servers need</text>
+<text x="600" y="452" class="h" data-t="7.6,9.9"><tspan class="d">&gt;</tspan> proof in one workspace becomes client state for this server process</text>
+<text x="600" y="452" class="h" data-t="12.2,99"><tspan class="d">&gt;</tspan> another store's missing rows cannot restore the abandoned identity</text>
+</g>
+<line x1="30" y1="496" x2="1170" y2="496" class="ln"/>
+<line id="prog" x1="30" y1="496" x2="30" y2="496" class="la"/>
+<text x="30" y="514" class="xs d">by @jseramn · jseramn.tech · re #366</text>
+<text x="1170" y="514" text-anchor="end" class="xs f">ids abbreviated · loop 14s</text>
+</svg>
+<script>
+(()=>{const T=14,R=.25,q=s=>[...document.querySelectorAll(s)],c=x=>x<0?0:x>1?1:x;
+const fade=q('[data-t]').map(e=>[e,...e.dataset.t.split(',').map(Number)]);
+const pk=q('[data-pk]').map(e=>{const p=e.dataset.pk.split(',');return[e,document.getElementById(p[0]),p[1]?document.getElementById(p[1]):null,+p[2],+p[3],+p[4],+p[5]]});
+const prog=document.getElementById('prog');
+function f(t){
+for(const[e,a,b]of fade){let o=c((t-a)/R)*c((b-t)/R);e.style.opacity=o}
+for(const[e,p1,p2,a,b,P,off]of pk){if(t<a||t>b){e.style.opacity=0;continue}
+const u=((t-a+off)%P)/P,L1=p1.getTotalLength(),L2=p2?p2.getTotalLength():0,d=u*(L1+L2),pt=d<L1?p1.getPointAtLength(d):p2.getPointAtLength(d-L1);
+e.setAttribute('x',pt.x-3);e.setAttribute('y',pt.y-3);e.style.opacity=1}
+prog.setAttribute('x2',30+1140*t/T)}
+const m=location.hash.match(/t=([\d.]+)/);
+if(m)f(+m[1]);else if(matchMedia('(prefers-reduced-motion: reduce)').matches)f(13.9);
+else{const s=performance.now();const l=n=>{f(((n-s)/1000)%T);requestAnimationFrame(l)};requestAnimationFrame(l)}})();
+</script>
+</body></html>
